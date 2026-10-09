@@ -14,6 +14,9 @@ anywhere in the path.
 pip install vegaml
 ```
 
+<sub>Releases are cut by tagging `vX.Y.Z`: CI builds, checks the version matches the tag, and
+publishes through PyPI Trusted Publishing — no API token exists in this repository.</sub>
+
 ## Quick start
 
 ```python
