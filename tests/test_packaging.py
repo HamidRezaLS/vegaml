@@ -3,8 +3,12 @@ from __future__ import annotations
 
 import pathlib
 import re
+import sys
 
-import tomllib
+if sys.version_info >= (3, 11):
+    import tomllib
+else:                                      # tomllib is stdlib only from 3.11
+    import tomli as tomllib
 
 import vegaml
 
