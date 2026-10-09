@@ -8,6 +8,8 @@ a conformal answer set and an explicit abstain flag.
 **800M parameters · 73,728-token context · images · runs on your own hardware.** No text is generated
 anywhere in the path.
 
+![Where this model beats a hosted reference](assets/vega_wins.png)
+
 ```bash
 pip install vegaml
 ```
@@ -86,11 +88,11 @@ text; the image path is functional but not covered by them.
 
 ## Benchmarks
 
-Item-paired against a live hosted reference model over identical items, no tuning on the evaluation
-data. These are the areas where this model leads; the reference leads on most others, particularly
-reranking and multi-step reasoning.
+The figure at the top of this page is the table below. Item-paired against a live Jev 1.13.0 over
+identical items, no tuning on the evaluation data. These are the areas where this model leads; the
+reference leads on most others, particularly reranking and multi-step reasoning.
 
-| task | this model | reference |
+| task | this model | Jev 1.13.0 |
 |---|---|---|
 | Phishing screening, 800 emails | **75.4** acc · **252/400** caught · recall **0.63** | 61.9 · 99/400 · 0.25 |
 | Dates and quantities (temporal_numeric) | **46.7** | 20.0 |
