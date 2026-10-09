@@ -21,7 +21,6 @@ from __future__ import annotations
 
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
-from ._api import Vega as _Engine
 from .hub import fetch
 from .ttt import TTTHead
 
@@ -37,7 +36,7 @@ class Vega:
     `mode` sets the default readout for :meth:`decide`; "engine" unless you change it.
     """
 
-    def __init__(self, engine: _Engine, mode: str = "engine"):
+    def __init__(self, engine, mode: str = "engine"):
         if mode not in MODES:
             raise ValueError("mode must be one of %s, got %r" % (", ".join(MODES), mode))
         self.engine = engine
@@ -50,6 +49,10 @@ class Vega:
                         device: Optional[str] = None, adapters: str = "auto",
                         mode: str = "engine", revision: Optional[str] = None,
                         token: Optional[str] = None, max_len: Optional[int] = None) -> "Vega":
+        # Imported here, not at module import: torch and transformers are only needed once a
+        # checkpoint is actually being loaded.
+        from ._api import Vega as _Engine
+
         path = fetch(repo_or_path, revision=revision, token=token)
         return cls(_Engine(path, backbone=backbone, device=device, adapters=adapters,
                            max_len=max_len), mode=mode)

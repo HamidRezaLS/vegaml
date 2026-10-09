@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import pathlib
 import re
+import sys
+import types
 
 import vegaml
 from vegaml import hub
@@ -30,17 +32,25 @@ def test_allow_list_is_data_only():
 
 
 def test_download_is_restricted_to_the_allow_list(monkeypatch):
+    """What `fetch` actually asks the Hub for.
+
+    A stub stands in for huggingface_hub so this gate needs nothing installed beyond the package
+    itself: a security check that only runs when the full ML stack resolves is a check that stops
+    running the first time an unrelated dependency breaks.
+    """
     seen = {}
 
     def fake_snapshot_download(repo_id, **kw):
         seen.update(kw, repo_id=repo_id)
         return "/tmp/not-a-real-checkpoint"
 
-    import huggingface_hub
+    stub = types.ModuleType("huggingface_hub")
+    stub.snapshot_download = fake_snapshot_download
+    monkeypatch.setitem(sys.modules, "huggingface_hub", stub)
 
-    monkeypatch.setattr(huggingface_hub, "snapshot_download", fake_snapshot_download)
     hub.fetch("someone/their-model")
     assert seen["allow_patterns"] == hub.ALLOW_PATTERNS, "fetch must constrain what it downloads"
+    assert seen["repo_id"] == "someone/their-model"
 
 
 def test_local_directory_passes_through(tmp_path):

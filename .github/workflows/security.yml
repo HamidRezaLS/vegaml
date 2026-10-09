@@ -130,4 +130,9 @@ jobs:
       # arbitrary code execution by design. The download list is the control, and this test is what
       # keeps it honest.
       - name: A checkpoint download can never carry executable code
-        run: python -m pytest tests/test_no_remote_code.py -q
+        run: |
+          # --no-deps on purpose: importing vegaml needs numpy and nothing else, so this gate
+          # costs seconds and cannot be taken down by an unrelated dependency resolution.
+          pip install --quiet numpy pytest
+          pip install --quiet --no-deps -e .
+          python -m pytest tests/test_no_remote_code.py -q

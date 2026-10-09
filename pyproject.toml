@@ -35,7 +35,7 @@ dependencies = [
 [project.optional-dependencies]
 # The image path: the backbone's processor is loaded through transformers, and Pillow decodes the file.
 vision = ["pillow>=10.0"]
-dev = ["pytest>=8.0", "ruff>=0.6"]
+dev = ["pytest>=8.0", "ruff>=0.6", 'tomli>=2.0; python_version < "3.11"']
 
 [project.urls]
 Homepage = "https://github.com/NandhaKishorM/vegaml"
