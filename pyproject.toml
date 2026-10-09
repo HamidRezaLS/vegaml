@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vegaml"
+version = "0.1.0"
+description = "Typed decisions from a frozen language model and a small physics engine: calibrated probabilities, conformal sets, 73k context, images."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Nandakishor M" }]
+keywords = ["typed-decisions", "calibration", "conformal-prediction", "decision-model", "long-context"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Typing :: Typed",
+]
+dependencies = [
+  "torch>=2.4",
+  "transformers>=5.17",
+  "safetensors>=0.4",
+  "huggingface_hub>=0.30,<2.0",
+  "numpy>=1.24",
+]
+
+[project.optional-dependencies]
+# The image path: the backbone's processor is loaded through transformers, and Pillow decodes the file.
+vision = ["pillow>=10.0"]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
+[project.urls]
+Homepage = "https://github.com/NandhaKishorM/vegaml"
+Issues = "https://github.com/NandhaKishorM/vegaml/issues"
+
+[tool.setuptools]
+packages = ["vegaml"]
+
+[tool.setuptools.package-data]
+vegaml = ["py.typed"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+# No pyupgrade (UP): the engine modules are kept runnable on the Python the training code uses, and
+# %-formatting is the house style throughout. Correctness and import hygiene are what matter here.
+select = ["E", "F", "W", "I", "B"]
+# The vendored inference modules are kept close to the training-time source so the two can be diffed.
+exclude = ["vegaml/_common.py", "vegaml/_api.py", "vegaml/_vision.py"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

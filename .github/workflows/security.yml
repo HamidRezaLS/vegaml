@@ -1,0 +1,133 @@
+name: Security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 6 * * 1"     # Monday morning: catch CVEs disclosed since the last push
+
+# Cancel outdated pull request runs; on main, run per commit.
+concurrency:
+  group: security-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Read-only by default. Jobs that need more ask for it explicitly.
+permissions: read-all
+
+jobs:
+  secrets:
+    name: secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0          # gitleaks needs history to scan every commit in the PR
+      - name: gitleaks (diff)
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      # The action above only scans the commits in this push or PR. That misses a secret that
+      # entered on an earlier commit and is still sitting in the tree. This second pass scans the
+      # checked-out files themselves, so anything present in HEAD is caught no matter which commit
+      # put it there.
+      - name: gitleaks (working tree)
+        run: |
+          VER=8.30.1
+          # Digest of gitleaks_${VER}_linux_x64.tar.gz from the v${VER} release,
+          # cross-checked against gitleaks_${VER}_checksums.txt in the same release.
+          SHA256=551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+          curl -sSL -o gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${VER}/gitleaks_${VER}_linux_x64.tar.gz"
+          echo "${SHA256}  gitleaks.tar.gz" | sha256sum -c
+          tar -xzf gitleaks.tar.gz gitleaks
+          ./gitleaks dir . --no-banner --redact --exit-code 1
+
+  deps:
+    name: dependency CVEs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+      - run: pip install pip-audit
+      - name: Audit shipped dependencies (blocking)
+        run: |
+          # Audit what the package DECLARES, not a local install. Installing torch from the PyTorch
+          # CPU index yields a local version (2.14.0+cpu) that does not exist on PyPI, so pip-audit
+          # cannot resolve it and --strict fails the job on that alone.
+          #
+          # Read the tables rather than transcribing a list, so a dependency added later is audited
+          # by the commit that adds it.
+          python - <<'PY' > requirements-audit.txt
+          import tomllib
+          with open("pyproject.toml", "rb") as fh:
+              project = tomllib.load(fh)["project"]
+          specs = list(project.get("dependencies", []))
+          specs.extend(project.get("optional-dependencies", {}).get("vision", []))
+          seen = set()
+          for spec in specs:
+              if spec not in seen:
+                  seen.add(spec)
+                  print(spec)
+          PY
+          cat requirements-audit.txt
+          echo "strictly auditing $(wc -l < requirements-audit.txt) shipped names"
+          pip-audit --strict --desc -r requirements-audit.txt
+
+  codeql:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          languages: python
+          queries: security-extended
+      - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+
+  supply_chain:
+    name: no unsafe deserialization, no remote code
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Weights must load through safetensors, never pickle
+        run: |
+          # torch.load / pickle execute arbitrary code during deserialization. vegaml loads
+          # checkpoints from the Hub, so a pickle path would be remote code execution on
+          # `vegaml.load("someone/their-model")`.
+          if grep -rnE --include='*.py' "\bpickle\b|torch\.load\(|joblib\.load\(|yaml\.load\(" vegaml/; then
+            echo "::error::unsafe deserialization in the shipped package - use safetensors"
+            exit 1
+          fi
+          echo "OK: no unsafe deserialization in vegaml/"
+
+      - name: No shell-out or dynamic exec in the shipped package
+        run: |
+          if grep -rnE "os\.system\(|subprocess\.|shell=True|\beval\(|\bexec\(" vegaml/ \
+               | grep -v "\.eval()"; then
+            echo "::error::shell-out or dynamic execution in the shipped package"
+            exit 1
+          fi
+          echo "OK: no os.system/subprocess/eval/exec in vegaml/"
+
+      # The distinguishing risk for this package: a checkpoint is data downloaded from a third
+      # party. If the runtime ever imported a .py file out of one, `vegaml.load(...)` would be
+      # arbitrary code execution by design. The download list is the control, and this test is what
+      # keeps it honest.
+      - name: A checkpoint download can never carry executable code
+        run: python -m pytest tests/test_no_remote_code.py -q

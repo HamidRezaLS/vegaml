@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  # Cancel outdated pull request runs. On main, use a per-commit group so each push gets its own
+  # run and started runs finish without cancelling or being cancelled by adjacent merges.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  # transformers probes for TensorFlow at import; when TF is present its abseil runtime can deadlock
+  # model construction. This package is torch-only.
+  USE_TF: "0"
+  USE_TORCH: "1"
+  TOKENIZERS_PARALLELISM: "false"
+
+jobs:
+  lint:
+    name: ruff
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+      - run: pip install ruff
+      - run: ruff check .
+
+  test:
+    name: tests (py${{ matrix.python }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        # Keep this in lockstep with the pyproject classifiers; tests/test_packaging.py enforces it.
+        python: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          # CPU-only torch keeps the job short instead of pulling CUDA wheels.
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[dev,vision]"
+      # No weights and no network in CI: these suites cover the readout maths, the packaging
+      # metadata and the download allow-list. Anything needing a checkpoint is a local or release
+      # concern, not a per-PR one.
+      - run: python -m pytest -q
+
+  build:
+    name: package builds and installs clean
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+      - run: python -m pip install --upgrade pip build twine
+      - run: python -m build
+      - run: python -m twine check dist/*
+      # The sdist and the wheel must carry the licence and the inference modules; a packaging
+      # mistake that drops one of them only shows up here.
+      - name: Distribution contents
+        run: |
+          python - <<'PY'
+          import glob, tarfile, zipfile
+          sdist = glob.glob("dist/*.tar.gz")[0]
+          names = tarfile.open(sdist).getnames()
+          wheel = glob.glob("dist/*.whl")[0]
+          wnames = zipfile.ZipFile(wheel).namelist()
+          need_sdist = ["LICENSE", "README.md", "pyproject.toml", "vegaml/__init__.py",
+                        "vegaml/_api.py", "vegaml/_common.py", "vegaml/ttt.py", "vegaml/hub.py"]
+          for n in need_sdist:
+              assert any(x.endswith("/" + n) or x == n for x in names), "sdist missing " + n
+          for n in ["vegaml/__init__.py", "vegaml/_common.py", "vegaml/ttt.py", "vegaml/py.typed"]:
+              assert n in wnames, "wheel missing " + n
+          print("sdist", len(names), "entries; wheel", len(wnames), "entries; all required files present")
+          PY
