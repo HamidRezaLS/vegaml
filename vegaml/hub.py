@@ -1,4 +1,4 @@
-"""Fetch a Vega checkpoint from the Hugging Face Hub — weights and config only.
+"""Fetch a Vega checkpoint from the Hugging Face Hub: weights and config only.
 
 Deliberately narrow: `allow_patterns` lists data files and no `*.py`. The inference code lives in this
 package and is reviewed with it. A checkpoint repository can hold whatever its author put there, so

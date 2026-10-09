@@ -40,11 +40,11 @@ def main():
 A gated adapter for **[vegaml](https://pypi.org/project/vegaml/)** on a public dataset, start to
 finish, on Kaggle's 2×T4.
 
-* **Model:** `nandakishorm/vega-08b-public-intents` — public, so no Hugging Face token is needed.
+* **Model:** `nandakishorm/vega-08b-public-intents`, which is public, so no Hugging Face token is needed.
 * **Task:** `dair-ai/emotion`, 16k messages over six emotions, written as a typed `choice` question.
 * **Gate negatives:** `fancyzhx/ag_news`, a different task, so the adapter's gate learns when *not*
   to fire. An adapter that always fires is not routable.
-* **Trained:** a rank-32 adapter on seven engine projections plus the gate — about 0.84M parameters.
+* **Trained:** a rank-32 adapter on seven engine projections plus the gate, about 0.84M parameters.
   The language model is frozen and never trained.
 
 **Before you run:** Settings → Accelerator → **GPU T4 ×2**, and Internet → **On**.
@@ -53,7 +53,7 @@ finish, on Kaggle's 2×T4.
 
 The frozen backbone is the expensive part, and it runs exactly once per row. That read is sharded
 across both T4s. What is actually trained then runs on the cached features, where an epoch is
-seconds on a single GPU — so the second GPU is used where it helps and nowhere else.
+seconds on a single GPU, so the second GPU is used where it helps and nowhere else.
 """),
         code("""
 !pip install -q vegaml datasets
@@ -75,7 +75,7 @@ processes. It is the same file that is version-controlled and tested in the repo
 """),
         writefile("vega_finetune.py", script),
         md("""
-## Stage 1 — frozen features on both GPUs
+## Stage 1: frozen features on both GPUs
 
 One read per row, sharded across the two T4s and cached to `/kaggle/working/features`. This is the
 long part: roughly 24k rows in total (16k train, 2k validation, 2k test, 4k gate negatives).
@@ -84,7 +84,7 @@ long part: roughly 24k rows in total (16k train, 2k validation, 2k test, 4k gate
 !torchrun --nproc_per_node=2 vega_finetune.py extract --batch 32
 """),
         md("""
-## Stage 2 — the adapter
+## Stage 2: the adapter
 
 On cached features, so this is minutes at most. Thermal calibration and the conformal thresholds are
 fitted afterwards on the validation split, which training never sees.
@@ -93,7 +93,7 @@ fitted afterwards on the validation split, which training never sees.
 !python vega_finetune.py train --epochs 3 --batch 64 --rank 32 --lr 3e-4
 """),
         md("""
-## Stage 3 — did it help?
+## Stage 3: did it help?
 
 Base engine against the fine-tuned adapter on the held-out test split: accuracy and expected
 calibration error, plus how far the gate opens.
@@ -116,7 +116,7 @@ print("delta             acc %+.4f  ECE %+.2f"
 
 `/kaggle/working/adapter/` now holds `emotion.safetensors` and `emotion.json` in the layout the
 package already reads. Drop both into a checkpoint's `adapters/` directory and they load
-automatically — the gate decides per question whether they apply, and the adapter's own calibration
+automatically. The gate decides per question whether they apply, and the adapter's own calibration
 travels with it.
 
 ```python

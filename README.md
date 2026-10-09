@@ -5,9 +5,9 @@
 # vegaml
 
 Typed decisions from a frozen language model and a small physics engine. You give it a **state** and a
-**question whose answer type is fixed in advance**; it returns a value your code can use directly — a
-choice, a 0–1 score, or the probability that a statement is true — each with a calibrated probability,
-a conformal answer set and an explicit abstain flag.
+**question whose answer type is fixed in advance**; it returns a value your code can use directly: a
+choice, a 0 to 1 score, or the probability that a statement is true. Each carries a calibrated
+probability, a conformal answer set and an explicit abstain flag.
 
 **800M parameters · 73,728-token context · images · runs on your own hardware.** No text is generated
 anywhere in the path.
@@ -19,7 +19,7 @@ pip install vegaml
 ```
 
 <sub>Releases are cut by tagging `vX.Y.Z`: CI builds, checks the version matches the tag, and
-publishes through PyPI Trusted Publishing — no API token exists in this repository.</sub>
+publishes through PyPI Trusted Publishing, so no API token exists in this repository.</sub>
 
 ## Quick start
 
@@ -51,7 +51,7 @@ Both questions are answered from **one** read of the state.
 | mode | needs examples | carries | use it when |
 |---|---|---|---|
 | `"engine"` *(default)* | no, zero-shot | calibration, conformal sets, abstain | the normal case, and every published figure below |
-| `"ttt"` | yes, 6 minimum | nothing — it answers even when it should not | you have labels for exactly this question |
+| `"ttt"` | yes, 6 minimum | nothing, and it answers even when it should not | you have labels for exactly this question |
 | `"both"` | yes | both, side by side | deciding which to trust |
 
 ```python
@@ -96,7 +96,7 @@ text; the image path is functional but not covered by them.
 ## Fine-tuning
 
 [`notebooks/vega_finetune_2xT4_kaggle.ipynb`](notebooks/vega_finetune_2xT4_kaggle.ipynb) trains a
-gated adapter on Kaggle's 2×T4, end to end, against public artefacts only — no Hugging Face token.
+gated adapter on Kaggle's 2×T4, end to end, against public artefacts only, with no Hugging Face token.
 
 The language model stays frozen. What is trained is a rank-32 adapter on seven engine projections
 plus its gate, about **0.84M parameters**, on `dair-ai/emotion` as a typed `choice` question, with
@@ -104,7 +104,7 @@ gate negatives drawn from `ag_news` so the adapter learns when *not* to fire. Th
 the conformal thresholds are refitted on a validation split that training never sees, and travel
 with the adapter.
 
-Both GPUs are used for the one stage where a second GPU helps — the frozen read, sharded across
+Both GPUs are used for the one stage where a second GPU helps: the frozen read, sharded across
 them and cached. Training then runs on those cached features, where an epoch is seconds. The output
 is `emotion.safetensors` plus `emotion.json` in the layout the loader already reads, stamped with the
 SHA-256 of the base engine it was trained against so it cannot be loaded onto a different one.
@@ -112,7 +112,7 @@ SHA-256 of the base engine it was trained against so it cannot be loaded onto a 
 All three stages were run end to end before this was committed, but on a laptop and a **96-row
 slice**, not on two T4s: extract → train → eval completed, two-rank sharding was checked to
 recombine each split exactly once, and the adapter moved test accuracy 0.313 → 0.542 on 48 held-out
-items. Those numbers are a smoke test, not a result — the full 16k run on Kaggle is the real one.
+items. Those numbers are a smoke test, not a result. The full 16k run on Kaggle is the real one.
 
 ## Benchmarks
 
@@ -137,7 +137,7 @@ reference leads on most others, particularly reranking and multi-step reasoning.
 
 One prompt, one forward pass, then physics.
 
-**1 — One formatted prompt.** The state, the question and every candidate answer are written into a
+**1. One formatted prompt.** The state, the question and every candidate answer are written into a
 single sequence:
 
 ```
@@ -145,20 +145,18 @@ Observation: {state} Measurement ({type}): {instructions} Possible outcomes: * {
 ```
 
 The option text is genuinely part of the model's input, not metadata kept outside it. No system prompt,
-no chat template, no demonstrations, and the gold answer never appears — it exists only as a training
-label.
+no chat template, no demonstrations, and the gold answer never appears. During training it exists only as a label.
 
-**2 — One forward pass, five pooled vectors.** The frozen language model runs **once** over that
+**2. One forward pass, five pooled vectors.** The frozen language model runs **once** over that
 sequence. Vega then pools different token spans from the *same* hidden states: the situation span, the
 question span, one span per answer option, and the final token. Three questions about one state mean
 three prompts and three passes, except for the long-input case above, where the prefix is shared.
 
-**3 — Pooled vectors become initial conditions.** The situation vector projects to a world latent and
+**3. Pooled vectors become initial conditions.** The situation vector projects to a world latent and
 gets a bounded nonlinear nudge; the question and the final token project to a probe and an impulse.
 Together they place a particle at position `z₀` with momentum `p₀` in a 64-dimensional decision space.
 
-**4 — Every candidate answer becomes a valley.** Each option's own features produce a Gaussian well —
-a centre `c_k`, a depth `a_k` and a width `σ_k`:
+**4. Every candidate answer becomes a valley.** Each option's own features produce a Gaussian well with a centre `c_k`, a depth `a_k` and a width `σ_k`:
 
 ```
 U(z) = ½κ‖z‖² − Σ_k a_k · exp( −‖z − c_k‖² / 2σ_k² )
@@ -167,11 +165,11 @@ U(z) = ½κ‖z‖² − Σ_k a_k · exp( −‖z − c_k‖² / 2σ_k² )
 The quadratic term keeps the particle bounded; each well pulls it toward one answer. Score levels sit on
 a one-dimensional rail, so ordinal neighbours are physical neighbours.
 
-**5 — The particle rolls and settles.** Damped Hamiltonian dynamics — symplectic Euler with friction and
-a learned state-space thermostat — for a fixed, small step budget, with early exit once it has settled.
+**5. The particle rolls and settles.** Damped Hamiltonian dynamics (symplectic Euler with friction and
+a learned state-space thermostat) for a fixed, small step budget, with early exit once it has settled.
 A decision is a short simulation with constant cost, not a sampling loop, so it is deterministic.
 
-**6 — Where it settles is the answer.**
+**6. Where it settles is the answer.**
 
 ```
 E_k = ‖z_T − c_k‖² / 2σ_k² − log a_k            P = softmax(−E / τ)
@@ -179,7 +177,7 @@ E_k = ‖z_T − c_k‖² / 2σ_k² − log a_k            P = softmax(−E / τ
 
 ### What is new here
 
-**The architecture.** The language model is frozen and never trained — it is perception only, read at
+**The architecture.** The language model is frozen and never trained. It is perception only, read at
 two intermediate layers and cut off above the deepest one, so a decision never pays for the layers above
 it and the LM head never runs. Everything learned lives in a 55 MB engine whose state is a *physical*
 one: a position and a momentum, not a logit vector.
@@ -205,7 +203,7 @@ log τ = b + w · [ log(1 + residual kinetic energy),
 A particle still in motion, or stopped far from every well, is an uncertain decision and gets a hotter
 temperature. Each adapter route carries its own calibration vector. On top of that, every answer has a
 split-conformal set at a chosen risk level, an **abstain** flag below a fitted confidence floor, and an
-**unbound** flag when the particle settled far from every well — the model's own way of saying the
+**unbound** flag when the particle settled far from every well, which is the model's own way of saying the
 question is outside what it knows.
 
 ## Security
@@ -228,7 +226,7 @@ nobody mistakes a gap for a gate:
 
   The nearest available substitute is a local hook, `.githooks/pre-push`, which refuses a force-push
   or a deletion of `main`. Enable it in each clone with `git config core.hooksPath .githooks`. It
-  stops the accident from a configured clone and **nothing else** — not another machine, not the web
+  stops the accident from a configured clone and **nothing else**: not another machine, not the web
   UI, not `--no-verify`. Treat it as a seatbelt, not a lock.
 * **CodeQL.** Code scanning needs GitHub Advanced Security on a private repository
   (`422 Advanced security has not been purchased`), so the CodeQL job reports why it skipped instead

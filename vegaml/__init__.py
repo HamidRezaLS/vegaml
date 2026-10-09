@@ -1,4 +1,4 @@
-"""vegaml — typed decisions from a frozen language model and a small physics engine.
+"""vegaml: typed decisions from a frozen language model and a small physics engine.
 
     import vegaml
 
@@ -9,13 +9,13 @@
 
 Two readouts over the same frozen features, chosen with `mode`:
 
-* ``"engine"`` (the default) — the physics engine and its adapters. Zero-shot: it answers a question
+* ``"engine"`` (the default) is the physics engine and its adapters. Zero-shot: it answers a question
   it has never seen, and every answer carries a calibrated probability, a conformal set and an
   abstain flag. Every benchmark figure published for this model is measured in this mode.
-* ``"ttt"`` — a small head fitted here, on your labelled examples, over the same features. Sharper
+* ``"ttt"`` is a small head fitted here, on your labelled examples, over the same features. Sharper
   where your label space matches the examples, and worthless outside them. It carries no calibration
   and no abstain flag, so it will answer confidently when it should not.
-* ``"both"`` — both, side by side, which is the only honest way to pick between them.
+* ``"both"`` returns both, side by side, which is the only honest way to pick between them.
 """
 from __future__ import annotations
 
@@ -59,7 +59,7 @@ class Vega:
 
     # ------------------------------------------------------------------ reading
     def features(self, state, question: Mapping):
-        """Pooled frozen features for one (state, question) — what both readouts see."""
+        """Pooled frozen features for one (state, question): what both readouts see."""
         import numpy as np
         import torch
 
@@ -85,7 +85,7 @@ class Vega:
 
         `examples` is a sequence of ``(state, {question_id: label})``. One forward pass is run per
         example per question, so the cost is ``len(examples) × len(questions)`` reads of the frozen
-        backbone — seconds on a GPU for a few dozen examples, and paid once.
+        backbone. That is seconds on a GPU for a few dozen examples, and it is paid once.
 
         Returns, per question id, the number of examples used and a cross-validated accuracy. **Read
         that number.** A head at or below chance has learned nothing, and its answers are noise
