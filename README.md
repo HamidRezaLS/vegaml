@@ -194,8 +194,14 @@ Two things this repository cannot enforce on a private repo without a paid plan,
 nobody mistakes a gap for a gate:
 
 * **Branch protection.** Both classic protection and rulesets return `403 Upgrade to GitHub Pro or
-  make this repository public`. Nothing currently blocks a force-push to `main` or a merge over a red
-  check. The workflows still run on every push and pull request; only the enforcement is missing.
+  make this repository public`, so the server enforces nothing: a force-push to `main`, a deletion,
+  or a merge over a red check are all possible. The workflows still run on every push and pull
+  request; only the enforcement is missing.
+
+  The nearest available substitute is a local hook, `.githooks/pre-push`, which refuses a force-push
+  or a deletion of `main`. Enable it in each clone with `git config core.hooksPath .githooks`. It
+  stops the accident from a configured clone and **nothing else** — not another machine, not the web
+  UI, not `--no-verify`. Treat it as a seatbelt, not a lock.
 * **CodeQL.** Code scanning needs GitHub Advanced Security on a private repository
   (`422 Advanced security has not been purchased`), so the CodeQL job reports why it skipped instead
   of failing forever. Secret scanning, the dependency CVE audit and the supply-chain gate do run.
