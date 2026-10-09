@@ -88,12 +88,32 @@ jobs:
       actions: read
       contents: read
     steps:
+      # Code scanning is a paid feature on PRIVATE repositories (GitHub Advanced Security). On this
+      # one the API refuses it outright:
+      #   PATCH /repos/<owner>/<repo>  ->  422 "Advanced security has not been purchased."
+      # so every CodeQL run here ends in "Code scanning is not enabled for this repository".
+      #
+      # A job that can only ever fail teaches everyone to skim past a red Security badge, including
+      # the day something real is in it. So the analysis runs wherever it CAN run -- the moment this
+      # repository is public, or Advanced Security is enabled -- and otherwise says so and passes.
+      # No edit is needed to turn it on; the condition starts being true by itself.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: ${{ !github.event.repository.private }}
       - uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        if: ${{ !github.event.repository.private }}
         with:
           languages: python
           queries: security-extended
       - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        if: ${{ !github.event.repository.private }}
+      - name: Why CodeQL did not run
+        if: ${{ github.event.repository.private }}
+        run: |
+          echo "::notice::CodeQL skipped: code scanning needs GitHub Advanced Security on a private \
+          repository, and this account does not have it. The other three Security jobs -- secret \
+          scanning, dependency CVEs and the supply-chain gate -- ran and are what is enforcing \
+          today. Make the repository public, or enable Advanced Security, and this job analyses \
+          with no change to the workflow."
 
   supply_chain:
     name: no unsafe deserialization, no remote code

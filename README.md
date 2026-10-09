@@ -188,6 +188,20 @@ files; nothing fetched at runtime is imported or executed, and weights load thro
 pickle. Tests enforce that allow-list, and CI fails on any `pickle`, `torch.load`, `eval`, `exec`,
 `subprocess` or `sys.path` insertion reaching the shipped package.
 
+## Repository settings worth knowing
+
+Two things this repository cannot enforce on a private repo without a paid plan, documented here so
+nobody mistakes a gap for a gate:
+
+* **Branch protection.** Both classic protection and rulesets return `403 Upgrade to GitHub Pro or
+  make this repository public`. Nothing currently blocks a force-push to `main` or a merge over a red
+  check. The workflows still run on every push and pull request; only the enforcement is missing.
+* **CodeQL.** Code scanning needs GitHub Advanced Security on a private repository
+  (`422 Advanced security has not been purchased`), so the CodeQL job reports why it skipped instead
+  of failing forever. Secret scanning, the dependency CVE audit and the supply-chain gate do run.
+
+Making the repository public, or upgrading, turns both on with no change to the workflows.
+
 ## Licence
 
 Apache 2.0.
