@@ -1,3 +1,7 @@
+<p align="left">
+  <img src="assets/vega-icon.svg" width="68" height="68" alt="Vega: a particle at rest in the deeper of two wells" />
+</p>
+
 # vegaml
 
 Typed decisions from a frozen language model and a small physics engine. You give it a **state** and a
