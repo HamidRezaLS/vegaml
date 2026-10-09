@@ -50,6 +50,10 @@ vegaml = ["py.typed"]
 [tool.ruff]
 line-length = 110
 target-version = "py310"
+# The Kaggle notebook is GENERATED from notebooks/vega_finetune.py by notebooks/build_finetune_nb.py.
+# Linting it separately rewrites the embedded copy of that script, which then no longer matches the
+# file the tests ran -- tests/test_notebook.py catches exactly that. The script itself is linted.
+extend-exclude = ["notebooks/*.ipynb"]
 
 [tool.ruff.lint]
 # No pyupgrade (UP): the engine modules are kept runnable on the Python the training code uses, and

@@ -89,6 +89,27 @@ text; the image path is functional but not covered by them.
   fed to the engine alongside the spans, so evidence late in a long document still reaches the decision.
 * **No silent truncation.** An input that will not fit is refused, never quietly shortened.
 
+## Fine-tuning
+
+[`notebooks/vega_finetune_2xT4_kaggle.ipynb`](notebooks/vega_finetune_2xT4_kaggle.ipynb) trains a
+gated adapter on Kaggle's 2×T4, end to end, against public artefacts only — no Hugging Face token.
+
+The language model stays frozen. What is trained is a rank-32 adapter on seven engine projections
+plus its gate, about **0.84M parameters**, on `dair-ai/emotion` as a typed `choice` question, with
+gate negatives drawn from `ag_news` so the adapter learns when *not* to fire. Thermal calibration and
+the conformal thresholds are refitted on a validation split that training never sees, and travel
+with the adapter.
+
+Both GPUs are used for the one stage where a second GPU helps — the frozen read, sharded across
+them and cached. Training then runs on those cached features, where an epoch is seconds. The output
+is `emotion.safetensors` plus `emotion.json` in the layout the loader already reads, stamped with the
+SHA-256 of the base engine it was trained against so it cannot be loaded onto a different one.
+
+All three stages were run end to end before this was committed, but on a laptop and a **96-row
+slice**, not on two T4s: extract → train → eval completed, two-rank sharding was checked to
+recombine each split exactly once, and the adapter moved test accuracy 0.313 → 0.542 on 48 held-out
+items. Those numbers are a smoke test, not a result — the full 16k run on Kaggle is the real one.
+
 ## Benchmarks
 
 The figure at the top of this page is the table below. Item-paired against a live Jev 1.13.0 over
