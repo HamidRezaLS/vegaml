@@ -26,7 +26,7 @@ from .hub import default_token, fetch
 from .ttt import TTTHead
 
 __all__ = ["load", "Vega", "TTTHead", "fetch", "default_token", "__version__"]
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 
 MODES = ("engine", "ttt", "both")
 
@@ -190,7 +190,7 @@ class Vega:
 def label_ids(question: Mapping) -> List[str]:
     """The option ids a readout must span, for any of the three answer types."""
     t = question["type"]
-    if t == "noul":
+    if t == "boolean":
         return ["false", "true"]
     if t == "score":
         return [str(i) for i in range(len(question.get("criteria") or []))]

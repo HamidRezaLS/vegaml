@@ -35,7 +35,7 @@ out = v.decide(
                "criteria": {"billing": "payments and invoices",
                             "technical": "product faults",
                             "sales": "new business"}},
-     "churn": {"type": "noul", "instructions": "Is this customer at risk of leaving?",
+     "churn": {"type": "boolean", "instructions": "Is this customer at risk of leaving?",
                "criteria": {"true": "shows intent to cancel", "false": "no such signal"}}})
 
 print(out["answers"]["team"]["choice"])        # 'billing'
@@ -93,6 +93,22 @@ text; the image path is functional but not covered by them.
 * **A memory reader.** Long states are cut into 16 pieces, mean-pooled at the deepest feature layer and
   fed to the engine alongside the spans, so evidence late in a long document still reaches the decision.
 * **No silent truncation.** An input that will not fit is refused, never quietly shortened.
+
+### Answer types
+
+Three, named in every question's `type` field:
+
+| type | returns |
+|---|---|
+| `choice` | one option from a set you define |
+| `score` | an integer level against ordered criteria, plus the expected value |
+| `boolean` | the probability that a statement holds |
+
+**Changed in 0.5.0.** The third type was previously called `noul`. The name said nothing to anyone
+reading it, so it is now `boolean`. Questions using the old name are rejected rather than silently
+reinterpreted. Checkpoints published before the change store their conformal thresholds under the
+old key, and the loader remaps them, so an older checkpoint still loads with its prediction sets
+intact.
 
 ## Two sizes
 

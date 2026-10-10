@@ -4,7 +4,7 @@
     d.decide("I was billed twice, refund me or I cancel.",
              {"team": {"type": "choice", "instructions": "Which team handles this?",
                        "criteria": {"billing": "payments and refunds", "technical": "bugs", "sales": "pricing"}},
-              "churn": {"type": "noul", "instructions": "Does the customer threaten to leave?"}})
+              "churn": {"type": "boolean", "instructions": "Does the customer threaten to leave?"}})
 
 Every answer carries: probabilities (thermally calibrated), confidence, a split-conformal prediction set, whether to
 abstain at the configured risk, whether the particle ended unbound (far from every well: likely out of
@@ -24,8 +24,11 @@ import time
 import numpy as np
 import torch
 
-from ._common import (QTYPES, VegaEngine, Perception, build_prompt, load_adapter, option_texts, prose_state,
-                      route_adapters, serialize_state, softmax_np, thermal_features, thermal_tau)
+from ._common import (
+    normalise_conformal,
+    QTYPES, VegaEngine, Perception, build_prompt, load_adapter, option_texts, prose_state,
+    route_adapters, serialize_state, softmax_np, thermal_features, thermal_tau,
+)
 
 
 class Vega:
@@ -70,7 +73,7 @@ class Vega:
         if calibration == "teacher" and not cal:
             raise ValueError("this model has no teacher calibration block (only typed-decisions fine-tunes do)")
         self.theta = np.array(cal.get("theta", np.zeros((3, 5))), dtype=np.float64)
-        self.conformal = cal.get("conformal", {})
+        self.conformal = normalise_conformal(cal.get("conformal", {}))
         self.abstain = cal.get("abstain_threshold", {})
         self.risk = cal.get("default_risk", "0.1")
         self.unbound = cal.get("unbound_threshold", float("inf"))
@@ -107,7 +110,8 @@ class Vega:
         self.engine.to(self.device).eval()
         cal = (meta.get("calibration_teacher") if self.calibration == "teacher" else None) or meta["calibration"]
         self.adapters.append({"name": meta["name"], "meta": meta, "cal": {
-            "theta": np.array(cal["theta"], dtype=np.float64), "conformal": cal.get("conformal", {}),
+            "theta": np.array(cal["theta"], dtype=np.float64),
+            "conformal": normalise_conformal(cal.get("conformal", {})),
             "abstain": cal.get("abstain_threshold", {}), "unbound": cal.get("unbound_threshold", float("inf"))},
             "threshold": meta.get("gate_threshold", 0.5)})
         return j
@@ -227,7 +231,7 @@ class Vega:
                 a["score"] = best
                 a["expected_score"] = float((np.arange(k) * p).sum())
             else:
-                a["noul"] = float(p[1])
+                a["boolean"] = float(p[1])
             answers[qid] = a
         return {"answers": answers, "latency_ms": round(1000 * (time.time() - t0), 1),
                 "n_tokens": sum(run["n_tokens"] for run in runs), "views": len(runs)}

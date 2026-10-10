@@ -73,7 +73,7 @@ def test_both_mode_returns_the_two_readouts_side_by_side():
 
 def test_both_mode_skips_questions_with_no_head_rather_than_failing():
     v = _vega_with_head("both")
-    qs = dict(QS, other={"type": "noul", "instructions": "?", "criteria": {"true": "", "false": ""}})
+    qs = dict(QS, other={"type": "boolean", "instructions": "?", "criteria": {"true": "", "false": ""}})
     out = v.decide("s", qs)
     assert set(out["ttt"]) == {"q"}
 

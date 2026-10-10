@@ -62,6 +62,6 @@ def test_cross_val_returns_none_when_there_is_too_little_data():
 
 
 def test_label_ids_covers_all_three_answer_types():
-    assert label_ids({"type": "noul", "criteria": {"true": "t", "false": "f"}}) == ["false", "true"]
+    assert label_ids({"type": "boolean", "criteria": {"true": "t", "false": "f"}}) == ["false", "true"]
     assert label_ids({"type": "score", "criteria": ["low", "mid", "high"]}) == ["0", "1", "2"]
     assert label_ids({"type": "choice", "criteria": {"billing": "x", "tech": "y"}}) == ["billing", "tech"]

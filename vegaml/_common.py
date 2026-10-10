@@ -38,7 +38,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-QTYPES = {"choice": 0, "score": 1, "noul": 2}
+QTYPES = {"choice": 0, "score": 1, "boolean": 2}
 QTYPE_NAMES = {v: k for k, v in QTYPES.items()}
 SLOTS = ("state", "question", "last")   # pooled item vectors per feature layer; options are stored separately
 
@@ -58,9 +58,8 @@ def seed_all(seed: int):
 
 # ----------------------------------------------------------------------------- text rendering
 def serialize_state(state) -> str:
-    if isinstance(state, str):
-        return state
-    return json.dumps(state, ensure_ascii=False)
+    """The situation as one string. Text passes through; anything else becomes compact JSON."""
+    return state if isinstance(state, str) else json.dumps(state, ensure_ascii=False)
 
 
 def prose_state(state) -> str:
@@ -80,8 +79,27 @@ def _crit_text(v) -> str:
     return v if isinstance(v, str) else json.dumps(v, ensure_ascii=False)
 
 
+def normalise_conformal(table: Dict) -> Dict:
+    """Key a checkpoint's conformal table by the question-type names this package uses.
+
+    The table is stored keyed by type name, so a checkpoint written before a type was renamed
+    carries the old name and the lookup would silently miss, costing the prediction set without
+    raising. When exactly one stored key is unrecognised and exactly one known type is absent,
+    the mapping is unambiguous, so it is applied. Anything less clear-cut keeps the recognised
+    keys and drops the rest, which is what a lookup would have done anyway, rather than guessing.
+    """
+    if not isinstance(table, dict):
+        return {}
+    out = {k: v for k, v in table.items() if k in QTYPES}
+    unknown = [k for k in table if k not in QTYPES]
+    absent = [k for k in QTYPES if k not in out]
+    if len(unknown) == 1 and len(absent) == 1:
+        out[absent[0]] = table[unknown[0]]
+    return out
+
+
 def option_texts(q: Dict) -> List[str]:
-    """Option texts in label-index order (noul is always [no, yes], so p[1] is the probability of yes)."""
+    """Option texts in label-index order (boolean is always [no, yes], so p[1] is the probability of yes)."""
     t, crit = q["t"], q.get("crit")
     if t == "choice":
         return [str(k) if v in (None, "") else "%s - %s" % (k, _crit_text(v)) for k, v in crit.items()]
@@ -980,15 +998,23 @@ def conformal_thresholds(probs: np.ndarray, label: np.ndarray, qtype: np.ndarray
 
 # ----------------------------------------------------------------------------- metrics
 def ece_score(conf: np.ndarray, correct: np.ndarray, bins: int = 15) -> float:
-    if len(conf) == 0:
+    """Expected calibration error: the gap between stated confidence and observed accuracy.
+
+    Equal-width binning over [0, 1], each bin weighted by how many predictions land in it. The
+    first bin takes its lower edge inclusively so a confidence of exactly 0 is counted once.
+    """
+    conf, correct = np.asarray(conf, dtype=np.float64), np.asarray(correct, dtype=np.float64)
+    if conf.size == 0:
         return float("nan")
-    edges = np.linspace(0, 1, bins + 1)
-    e = 0.0
-    for i, (lo, hi) in enumerate(zip(edges[:-1], edges[1:])):
-        sel = (conf >= lo if i == 0 else conf > lo) & (conf <= hi)
+    edges = np.linspace(0.0, 1.0, bins + 1)
+    # digitize puts each confidence in its bin; clip folds the right edge into the last bin
+    idx = np.clip(np.digitize(conf, edges[1:-1], right=True), 0, bins - 1)
+    total = 0.0
+    for b in range(bins):
+        sel = idx == b
         if sel.any():
-            e += sel.mean() * abs(conf[sel].mean() - correct[sel].mean())
-    return float(e)
+            total += sel.mean() * abs(conf[sel].mean() - correct[sel].mean())
+    return float(total)
 
 
 def aurc(conf: np.ndarray, correct: np.ndarray) -> float:
@@ -1024,4 +1050,5 @@ def spearman(a: np.ndarray, b: np.ndarray) -> float:
 
 
 def amp_dtype(name: Optional[str]) -> torch.dtype:
-    return torch.bfloat16 if name == "bf16" else torch.float16
+    """The autocast dtype a config name asks for; fp16 is the fallback because the T4 has no bf16."""
+    return torch.bfloat16 if str(name).lower() in ("bf16", "bfloat16") else torch.float16

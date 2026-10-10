@@ -159,7 +159,7 @@ class VegaVision:
             if q["t"] == "choice":
                 a["choice"] = labels[int(p.argmax())]
             else:
-                a["noul"] = float(p[1])
+                a["boolean"] = float(p[1])
             answers[qid] = a
         if self.dev.type == "mps":
             torch.mps.synchronize()
