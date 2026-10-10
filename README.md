@@ -370,6 +370,28 @@ split-conformal set at a chosen risk level, an **abstain** flag below a fitted c
 **unbound** flag when the particle settled far from every well, which is the model's own way of saying the
 question is outside what it knows.
 
+### Related work
+
+A frozen language model feeding a trainable module described as a differentiable physics engine in a
+learned latent space was proposed for physical reasoning in **CWMI**, [Inducing Causal World Models in
+LLMs for Zero-Shot Physical Reasoning](https://arxiv.org/abs/2507.19855) (Sharma et al., 2025). The
+separation of a frozen reader from a trained dynamics module is the same idea, and the resemblance is
+worth stating plainly.
+
+What differs is what the dynamics are *for*. CWMI learns physics as subject matter: its latent state
+is meant to carry position, velocity, mass and material, it is supervised against ground-truth final
+states from video and a simulator, and it answers physical-reasoning questions (PIQA, 89.4%). Its
+module is a 12-layer Transformer decoder of roughly 256M trainable parameters trained on 8 H100s.
+
+Vega uses dynamics as the inference mechanism rather than as a model of the world. Its 64-dimensional
+space has no physical referent; the wells are built from the candidate answers of whatever question
+was asked, so the landscape is rebuilt per question rather than learned once. The engine is 14.3M
+parameters with no attention anywhere, and the motion is an explicit damped Hamiltonian integrated
+with symplectic Euler against a written-down potential, not a learned state transition. The answer is
+the lowest-energy well, and the residual kinetic energy at the end is what sets the temperature, which
+is the part that makes the probabilities mean something. CWMI reports accuracy; it has no calibration,
+conformal or abstain machinery, which is most of what is claimed here.
+
 ## Download counts
 
 The repository carries a `config.json` so the Hub can count downloads; it counts nothing for a
