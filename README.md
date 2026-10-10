@@ -124,10 +124,30 @@ vegaml.load("owner/some-repo") # anything else on the Hub
 vegaml.load("/path/on/disk")   # or a local directory
 ```
 
+A private or gated repository needs a Hub token. `load()` picks one up from `HF_TOKEN` in the
+environment, so nothing has to be threaded through the call; pass `token=...` to override it, or
+`token=False` to ignore the environment and fetch anonymously. It stays optional: the published
+checkpoints are public and load with no token set.
+
+```python
+vegaml.load("owner/private-repo")               # uses $HF_TOKEN if it is set
+vegaml.load("owner/private-repo", token=tok)    # or pass it explicitly
+```
+
 ## Fine-tuning
 
 [`notebooks/vega_finetune_2xT4_kaggle.ipynb`](notebooks/vega_finetune_2xT4_kaggle.ipynb) trains a
-gated adapter on Kaggle's 2×T4, end to end, against public artefacts only, with no Hugging Face token.
+gated adapter on Kaggle's 2×T4, end to end, against public artefacts only. No Hugging Face token is
+needed to run it.
+
+`VEGA_SIZE` in the notebook's settings cell picks which size to tune, `"0.8b"` (the default) or
+`"4b"`. The two backbones pool to different widths, so each size keeps its own feature cache and its
+own output directory and switching between them never mixes the two.
+
+A token is optional and unlocks two things: fine-tuning a **private** checkpoint, and pushing the
+adapter you trained to your own account with `--push-to owner/repo` on the eval stage. Only the
+adapter and its metadata are uploaded, a few hundred kilobytes, and the repository is created
+private unless you pass `--public`.
 
 The language model stays frozen. What is trained is a rank-32 adapter on seven engine projections
 plus its gate, about **0.84M parameters**, on `dair-ai/emotion` as a typed `choice` question, with

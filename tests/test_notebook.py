@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import pathlib
+import re
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 NB = ROOT / "notebooks" / "vega_finetune_2xT4_kaggle.ipynb"
@@ -63,10 +64,32 @@ def test_extract_uses_both_gpus_and_the_rest_do_not():
         assert "torchrun" not in cell, "%s runs on cached features; a second process buys nothing" % stage
 
 
-def test_no_hugging_face_token_is_required_anywhere():
+def test_a_hugging_face_token_is_optional_never_required():
+    """A token unlocks private checkpoints and pushing. It must never be needed to run the thing."""
     text = NB.read_text(encoding="utf-8") + SCRIPT.read_text(encoding="utf-8")
-    for needle in ("HF_TOKEN", "hf_token", "huggingface-cli login", "login(token"):
-        assert needle not in text, "the notebook must run against public artefacts only: " + needle
+    assert 'os.environ.get("HF_TOKEN")' in text, "the token should be read, not demanded"
+    for needle in ('os.environ["HF_TOKEN"]\n', "huggingface-cli login", "login(token",
+                   'os.environ["HF_TOKEN"])'):
+        assert needle not in text, "a missing token must not be an error: " + needle
+    assert re.search(r'HF_TOKEN = os\.environ\.get\("HF_TOKEN"\) or None', SCRIPT.read_text()), \
+        "the script should fall back to None, so the public path needs nothing"
+
+
+def test_no_credential_is_baked_into_either_file():
+    text = NB.read_text(encoding="utf-8") + SCRIPT.read_text(encoding="utf-8")
+    assert not re.search(r"hf_[A-Za-z0-9]{16,}", text), "a literal Hub token is committed"
+
+
+def test_the_size_is_a_variable_defaulting_to_the_small_one():
+    script = SCRIPT.read_text(encoding="utf-8")
+    assert '"0.8b": "Qwen/Qwen3.5-0.8B"' in script and '"4b": "Qwen/Qwen3.5-4B"' in script, \
+        "both published sizes should be selectable"
+    assert 'os.environ.get("VEGA_SIZE") or "0.8b"' in script, "0.8b is the documented default"
+    # the two backbones pool to different widths, so a shared cache would silently mix them
+    assert 'CACHE = os.path.join(WORK, "features-" + SIZE)' in script
+    assert 'OUT = os.path.join(WORK, "adapter-" + SIZE)' in script
+    code = "\n".join(shell_cells())
+    assert 'os.environ["VEGA_SIZE"] = "0.8b"' in code, "the notebook should set it explicitly"
 
 
 def test_the_notebook_declares_the_accelerator_it_asserts():

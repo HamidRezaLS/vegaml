@@ -13,6 +13,14 @@ pooled features, where an epoch is seconds on one GPU. Sharding the read across 
 place a second GPU helps, so that is the only place it is used; pretending otherwise would make the
 notebook slower, not faster.
 
+Which size: VEGA_SIZE picks the backbone, "0.8b" (the default) or "4b". Both train identically;
+the 4B reads more slowly and its cached features are wider, so each size keeps its own cache and
+its own output directory.
+
+A Hugging Face token is optional throughout. The checkpoint and both datasets are public, so the
+three stages above run with nothing set. Export HF_TOKEN to train against a private checkpoint, and
+pass --push-to <your-repo> on the eval stage to upload the adapter you trained to your own account.
+
 The task: dair-ai/emotion, a 6-way choice, written as a typed decision. The gate is trained with
 negatives from ag_news so it learns when NOT to fire, which is what makes an adapter routable
 rather than always-on.
@@ -29,11 +37,26 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-MODEL_REPO = os.environ.get("VEGA_MODEL_REPO", "nandakishorm/vega-08b-public-intents")
-BACKBONE = os.environ.get("VEGA_BACKBONE", "Qwen/Qwen3.5-0.8B")
+# Which size to fine-tune. 0.8b is the default and the one this notebook is timed against; 4b is
+# the same architecture with a wider backbone and trains the same way, for longer.
+SIZES = {"0.8b": "Qwen/Qwen3.5-0.8B", "4b": "Qwen/Qwen3.5-4B"}
+ALIASES = {"0.8b": "0.8b", "08b": "0.8b", "8b": "0.8b", "4b": "4b", "04b": "4b", "0.4b": "4b"}
+SIZE = ALIASES.get((os.environ.get("VEGA_SIZE") or "0.8b").strip().lower().rstrip("b") + "b")
+if SIZE is None:
+    raise SystemExit("VEGA_SIZE must be one of %s" % ", ".join(SIZES))
+
+# A size name is enough: the package resolves it to the right folder of the checkpoint repository.
+MODEL_REPO = os.environ.get("VEGA_MODEL_REPO") or SIZE
+BACKBONE = os.environ.get("VEGA_BACKBONE") or SIZES[SIZE]
+
+# Optional. The default checkpoint is public and trains with no token at all. Set HF_TOKEN to read
+# a private or gated checkpoint, or to push the adapter you train here to your own account.
+HF_TOKEN = os.environ.get("HF_TOKEN") or None
+
 WORK = os.environ.get("VEGA_WORK", "/kaggle/working")
-CACHE = os.path.join(WORK, "features")
-OUT = os.path.join(WORK, "adapter")
+# Per size, because the two backbones pool to different widths and the caches must not be mixed.
+CACHE = os.path.join(WORK, "features-" + SIZE)
+OUT = os.path.join(WORK, "adapter-" + SIZE)
 
 EMOTIONS = ["sadness", "joy", "love", "anger", "fear", "surprise"]
 QUESTION = {
@@ -115,7 +138,7 @@ def stage_extract(args):
     import vegaml
     from vegaml._api import Vega as Engine
 
-    path = vegaml.fetch(MODEL_REPO)
+    path = vegaml.fetch(MODEL_REPO, token=HF_TOKEN)
     eng = Engine(path, backbone=BACKBONE, device=device, adapters="off")
 
     class Holder:                      # the two attributes build_items needs, without a wrapper class
@@ -206,7 +229,7 @@ def stage_train(args):
         thermal_tau,
     )
 
-    path = vegaml.fetch(MODEL_REPO)
+    path = vegaml.fetch(MODEL_REPO, token=HF_TOKEN)
     eng = Engine(path, backbone=BACKBONE, device=device, adapters="off")
     engine = eng.engine
     base_sha = eng.base_sha256()
@@ -339,7 +362,7 @@ def stage_eval(args):
     from vegaml._api import Vega as Engine
     from vegaml._common import QTYPES, ece_score, load_adapter, softmax_np, thermal_features, thermal_tau
 
-    path = vegaml.fetch(MODEL_REPO)
+    path = vegaml.fetch(MODEL_REPO, token=HF_TOKEN)
     te = load_split("test")
     y = te[3].numpy()
 
@@ -385,6 +408,28 @@ def stage_eval(args):
     log("wrote %s/finetune_results.json" % WORK)
 
 
+def push_adapter(repo, private=True):
+    """Upload the trained adapter to a Hub repository of your own.
+
+    Only the adapter and its metadata go up: a few hundred kilobytes, no backbone and no engine.
+    Needs HF_TOKEN. Everything else in this script runs without one.
+    """
+    if not HF_TOKEN:
+        log("skipping the push: no HF_TOKEN in the environment")
+        return
+    from huggingface_hub import HfApi
+
+    api = HfApi(token=HF_TOKEN)
+    api.create_repo(repo, repo_type="model", private=private, exist_ok=True)
+    api.upload_folder(repo_id=repo, repo_type="model", folder_path=OUT, path_in_repo="adapters",
+                      allow_patterns=["*.safetensors", "*.json"])
+    results = os.path.join(WORK, "finetune_results.json")
+    if os.path.exists(results):
+        api.upload_file(path_or_fileobj=results, path_in_repo="finetune_results.json",
+                        repo_id=repo, repo_type="model")
+    log("pushed the adapter to https://huggingface.co/%s (private=%s)" % (repo, private))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("stage", choices=["extract", "train", "eval"])
@@ -398,8 +443,14 @@ def main():
     ap.add_argument("--rank", type=int, default=32)
     ap.add_argument("--lr", type=float, default=3e-4)
     ap.add_argument("--epochs", type=int, default=3)
+    ap.add_argument("--push-to", default=os.environ.get("VEGA_PUSH_TO") or None,
+                    help="after eval, upload the adapter to this Hub repo id (needs HF_TOKEN)")
+    ap.add_argument("--public", action="store_true",
+                    help="create the pushed repo public; it is private by default")
     args = ap.parse_args()
     {"extract": stage_extract, "train": stage_train, "eval": stage_eval}[args.stage](args)
+    if args.stage == "eval" and args.push_to:
+        push_adapter(args.push_to, private=not args.public)
 
 
 if __name__ == "__main__":

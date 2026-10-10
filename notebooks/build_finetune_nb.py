@@ -40,7 +40,9 @@ def main():
 A gated adapter for **[vegaml](https://pypi.org/project/vegaml/)** on a public dataset, start to
 finish, on Kaggle's 2×T4.
 
-* **Model:** `nandakishorm/vega-08b-public-intents`, which is public, so no Hugging Face token is needed.
+* **Model:** `nandakishorm/vega-08b-public-intents`, which is public, so no Hugging Face token is
+  needed. Two sizes live in it: **0.8B** (the default here) and **4B**. Change `VEGA_SIZE` in the
+  cell below to switch; each size caches separately, so switching never mixes the two.
 * **Task:** `dair-ai/emotion`, 16k messages over six emotions, written as a typed `choice` question.
 * **Gate negatives:** `fancyzhx/ag_news`, a different task, so the adapter's gate learns when *not*
   to fire. An adapter that always fires is not routable.
@@ -57,6 +59,26 @@ seconds on a single GPU, so the second GPU is used where it helps and nowhere el
 """),
         code("""
 !pip install -q vegaml datasets
+"""),
+        md("""
+## Settings
+
+`VEGA_SIZE` is the only thing most runs change. `HF_TOKEN` is optional: leave it unset and
+everything below still runs, since the checkpoint and both datasets are public. Set it (Kaggle:
+Add-ons → Secrets) to fine-tune a *private* checkpoint, or to push the adapter you train to your
+own account at the end.
+"""),
+        code("""
+import os
+
+os.environ["VEGA_SIZE"] = "0.8b"          # "0.8b" (default) or "4b"
+
+# Optional. Uncomment to read it from Kaggle Secrets.
+# from kaggle_secrets import UserSecretsClient
+# os.environ["HF_TOKEN"] = UserSecretsClient().get_secret("HF_TOKEN")
+
+SIZE = os.environ["VEGA_SIZE"]
+print("size:", SIZE, "| token set:", bool(os.environ.get("HF_TOKEN")))
 """),
         code("""
 import torch
@@ -77,7 +99,7 @@ processes. It is the same file that is version-controlled and tested in the repo
         md("""
 ## Stage 1: frozen features on both GPUs
 
-One read per row, sharded across the two T4s and cached to `/kaggle/working/features`. This is the
+One read per row, sharded across the two T4s and cached to `/kaggle/working/features-$VEGA_SIZE`. This is the
 long part: roughly 24k rows in total (16k train, 2k validation, 2k test, 4k gate negatives).
 """),
         code("""
@@ -114,7 +136,7 @@ print("delta             acc %+.4f  ECE %+.2f"
         md("""
 ## Using the adapter
 
-`/kaggle/working/adapter/` now holds `emotion.safetensors` and `emotion.json` in the layout the
+`/kaggle/working/adapter-$VEGA_SIZE/` now holds `emotion.safetensors` and `emotion.json` in the layout the
 package already reads. Drop both into a checkpoint's `adapters/` directory and they load
 automatically. The gate decides per question whether they apply, and the adapter's own calibration
 travels with it.
@@ -133,7 +155,16 @@ The adapter records the SHA-256 of the base engine it was trained against, and t
 against a different one rather than silently producing nonsense.
 """),
         code("""
-!ls -la /kaggle/working/adapter/ && cat /kaggle/working/adapter/emotion.json
+!ls -la /kaggle/working/adapter-$VEGA_SIZE/ && cat /kaggle/working/adapter-$VEGA_SIZE/emotion.json
+"""),
+        md("""
+## Optional: push it to your own account
+
+Needs `HF_TOKEN` from the settings cell. Only the adapter and its metadata are uploaded, a few
+hundred kilobytes, and the repository is created private unless you pass `--public`.
+"""),
+        code("""
+# !python vega_finetune.py eval --batch 64 --push-to your-name/vega-emotion-adapter
 """),
     ]
 

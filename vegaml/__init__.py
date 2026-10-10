@@ -20,13 +20,13 @@ Two readouts over the same frozen features, chosen with `mode`:
 """
 from __future__ import annotations
 
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
-from .hub import fetch
+from .hub import default_token, fetch
 from .ttt import TTTHead
 
-__all__ = ["load", "Vega", "TTTHead", "fetch", "__version__"]
-__version__ = "0.2.1"
+__all__ = ["load", "Vega", "TTTHead", "fetch", "default_token", "__version__"]
+__version__ = "0.3.0"
 
 MODES = ("engine", "ttt", "both")
 
@@ -49,7 +49,14 @@ class Vega:
     def from_pretrained(cls, repo_or_path: Optional[str] = None, backbone: Optional[str] = None,
                         device: Optional[str] = None, adapters: str = "auto",
                         mode: str = "engine", revision: Optional[str] = None,
-                        token: Optional[str] = None, max_len: Optional[int] = None) -> "Vega":
+                        token: Union[str, bool, None] = None,
+                        max_len: Optional[int] = None) -> "Vega":
+        """Load a checkpoint from the Hub or from a local directory.
+
+        `token` is optional. Left as None it picks up `HF_TOKEN` from the environment if one is
+        set, which is what makes a private or gated repository load; with nothing set, the public
+        checkpoints load anonymously as before. Pass ``token=False`` to ignore the environment.
+        """
         # Imported here, not at module import: torch and transformers are only needed once a
         # checkpoint is actually being loaded.
         from ._api import Vega as _Engine

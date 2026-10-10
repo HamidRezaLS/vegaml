@@ -8,7 +8,7 @@ safetensors only, never through Python's unpickler.
 from __future__ import annotations
 
 import os
-from typing import Optional
+from typing import Optional, Union
 
 #: The checkpoint repository. It holds more than one size.
 DEFAULT_REPO = "nandakishorm/vega-08b-public-intents"
@@ -20,6 +20,26 @@ VARIANTS = {
     "08b": "",
     "4b": "4b",
 }
+
+#: Where a token is read from when the caller passes none, in that order. `HF_TOKEN` is the name
+#: the Hugging Face CLI and the Hub libraries use; the other two are older spellings still in use.
+TOKEN_ENV = ("HF_TOKEN", "HUGGING_FACE_HUB_TOKEN", "HUGGINGFACEHUB_API_TOKEN")
+
+
+def default_token() -> Optional[str]:
+    """The Hub token found in the environment, or None.
+
+    Nothing here is mandatory. The published checkpoints are public and load with no token at all.
+    A token is what makes a *private* or gated repository load, and what lets a fine-tune push its
+    adapter back to the Hub under your own account, so it is picked up automatically when it is
+    there rather than having to be threaded through every call.
+    """
+    for var in TOKEN_ENV:
+        value = (os.environ.get(var) or "").strip()
+        if value:
+            return value
+    return None
+
 
 #: What the runtime reads. No executable file is on this list.
 ALLOW_PATTERNS = [
@@ -38,11 +58,16 @@ def patterns_for(subfolder: str) -> list[str]:
 
 
 def fetch(repo_id: Optional[str] = None, revision: Optional[str] = None,
-          token: Optional[str] = None, cache_dir: Optional[str] = None) -> str:
+          token: Union[str, bool, None] = None, cache_dir: Optional[str] = None) -> str:
     """Return a local directory holding a checkpoint.
 
     `repo_id` may be a size name (``"0.8b"``, the default, or ``"4b"``), a Hub repository id, or a
     local path. A local path is passed through unchanged, so this is safe to call on either.
+
+    `token` defaults to whatever :func:`default_token` finds in the environment, which is how a
+    private or gated repository loads without the caller passing anything. It stays optional: with
+    no token set, a public repository still loads. Pass ``token=False`` to ignore the environment
+    and fetch anonymously, or a string to override it.
     """
     name = (repo_id or "0.8b").strip()
     if os.path.isdir(name):
@@ -53,6 +78,9 @@ def fetch(repo_id: Optional[str] = None, revision: Optional[str] = None,
         repo, subfolder = DEFAULT_REPO, VARIANTS[key]
     else:
         repo, subfolder = name, ""
+
+    if token is None:
+        token = default_token()
 
     from huggingface_hub import snapshot_download
 
