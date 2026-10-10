@@ -2,7 +2,8 @@
 
     import vegaml
 
-    v = vegaml.load("nandakishorm/vega-08b-public-intents")
+    v = vegaml.load()              # the 0.8B, the default
+    v = vegaml.load("4b")          # the 4B, same repository
     v.decide("I was billed twice, refund me or I cancel.",
              {"team": {"type": "choice", "instructions": "Which team handles this?",
                        "criteria": {"billing": "payments and refunds", "technical": "bugs"}}})
@@ -25,7 +26,7 @@ from .hub import fetch
 from .ttt import TTTHead
 
 __all__ = ["load", "Vega", "TTTHead", "fetch", "__version__"]
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 MODES = ("engine", "ttt", "both")
 
@@ -45,7 +46,7 @@ class Vega:
 
     # ------------------------------------------------------------------ loading
     @classmethod
-    def from_pretrained(cls, repo_or_path: str, backbone: Optional[str] = None,
+    def from_pretrained(cls, repo_or_path: Optional[str] = None, backbone: Optional[str] = None,
                         device: Optional[str] = None, adapters: str = "auto",
                         mode: str = "engine", revision: Optional[str] = None,
                         token: Optional[str] = None, max_len: Optional[int] = None) -> "Vega":
@@ -54,6 +55,8 @@ class Vega:
         from ._api import Vega as _Engine
 
         path = fetch(repo_or_path, revision=revision, token=token)
+        # backbone=None lets the engine read backbone_name out of the checkpoint's own config,
+        # which is what makes load("4b") pull Qwen3.5-4B rather than the 0.8B one.
         return cls(_Engine(path, backbone=backbone, device=device, adapters=adapters,
                            max_len=max_len), mode=mode)
 
@@ -187,6 +190,11 @@ def label_ids(question: Mapping) -> List[str]:
     return [str(k) for k in question["criteria"]]
 
 
-def load(repo_or_path: str, **kw) -> Vega:
-    """Load a checkpoint. See :meth:`Vega.from_pretrained` for the arguments."""
+def load(repo_or_path: Optional[str] = None, **kw) -> Vega:
+    """Load a checkpoint.
+
+    With no argument you get the 0.8B, which is the default and the one every published figure
+    measures. ``load("4b")`` gets the 4B from the same repository. Anything else is treated as a
+    Hub repository id or a local path. See :meth:`Vega.from_pretrained` for the other arguments.
+    """
     return Vega.from_pretrained(repo_or_path, **kw)

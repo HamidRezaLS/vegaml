@@ -9,8 +9,8 @@ Typed decisions from a frozen language model and a small physics engine. You giv
 choice, a 0 to 1 score, or the probability that a statement is true. Each carries a calibrated
 probability, a conformal answer set and an explicit abstain flag.
 
-**800M parameters · 73,728-token context · images · runs on your own hardware.** No text is generated
-anywhere in the path.
+**800M or 4B parameters · 73,728-token context · images · runs on your own hardware.** No text is
+generated anywhere in the path.
 
 ![Where this model beats a hosted reference](assets/vega_wins.png)
 
@@ -26,7 +26,8 @@ publishes through PyPI Trusted Publishing, so no API token exists in this reposi
 ```python
 import vegaml
 
-v = vegaml.load("nandakishorm/vega-08b-public-intents")      # mode="engine" by default
+v = vegaml.load()            # the 0.8B, mode="engine": both are the defaults
+# v = vegaml.load("4b")      # the 4B, same repository, same interface
 
 out = v.decide(
     {"from": "billing@acme.com", "subject": "Invoice overdue", "body": "Third notice. Pay now."},
@@ -92,6 +93,37 @@ text; the image path is functional but not covered by them.
 * **A memory reader.** Long states are cut into 16 pieces, mean-pooled at the deepest feature layer and
   fed to the engine alongside the spans, so evidence late in a long document still reaches the decision.
 * **No silent truncation.** An input that will not fit is refused, never quietly shortened.
+
+## Two sizes
+
+Both live in the same checkpoint repository and take the same code path. `load()` with no argument
+gives you the 0.8B, which is the default and the model every Jev comparison on this page measures.
+
+| | 0.8B | 4B |
+|---|---|---|
+| backbone, frozen | Qwen3.5-0.8B | Qwen3.5-4B |
+| engine, trained | 14.3M params, 57 MB | 30.9M params, 124 MB |
+| task adapter | 0.84M params | 1.43M params |
+| zero-shot accuracy | 0.389 | **0.506** |
+| with the task adapter | 0.763 | **0.803** |
+| soft accuracy | 0.680 | **0.725** |
+| calibration error | 0.026 | **0.019** |
+| per decision | **22 ms** | 28 ms |
+
+Measured on the `LocalLLaMA/typed-decisions` test split, 2,050 decisions, each checkpoint's own run
+of the same harness. Per workflow with the adapter, the 4B leads on five of six: apibank 96.5 against
+89.5, when2call 94.6 against 90.4, appliances 89.1 against 85.1, banking77 74.9 against 71.4, esci
+64.4 against 56.4. The 0.8B wins clinc150, 88.0 against 86.7.
+
+So the 4B is the better model and the 0.8B is the default anyway, because 22 ms against 28 ms and 57
+MB against 124 MB decides more deployments than four points of accuracy does.
+
+```python
+vegaml.load()                  # 0.8B
+vegaml.load("4b")              # 4B
+vegaml.load("owner/some-repo") # anything else on the Hub
+vegaml.load("/path/on/disk")   # or a local directory
+```
 
 ## Fine-tuning
 

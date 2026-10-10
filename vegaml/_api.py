@@ -44,10 +44,21 @@ class Vega:
         self.model_dir = model_dir
         self.calibration = calibration
         self.device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
-        bb = backbone or self.cfg["backbone"]
+        # Resolution order, most specific first. cfg["backbone"] is whatever absolute path the
+        # training machine used, so it is only usable if it happens to exist here; otherwise fall
+        # back to cfg["backbone_name"], the Hub id, which is what makes a downloaded checkpoint
+        # work without the caller naming a backbone.
         local = os.path.join(model_dir, "backbone")
-        if backbone is None and os.path.isdir(local):
+        if backbone is not None:
+            bb = backbone
+        elif os.path.isdir(local):
             bb = local
+        elif os.path.isdir(self.cfg.get("backbone", "")):
+            bb = self.cfg["backbone"]
+        elif self.cfg.get("backbone_name"):
+            bb = self.cfg["backbone_name"]
+        else:
+            bb = self.cfg["backbone"]
         self.perc = perception or Perception(bb, self.device, self.cfg["feature_layers"], self.cfg["option_layers"])
         assert self.perc.feature_layers == self.cfg["feature_layers"], "backbone depth differs from training"
         self.engine = VegaEngine(self.cfg["d_model"], len(self.cfg["feature_layers"]), len(self.cfg["option_layers"]),

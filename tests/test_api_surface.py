@@ -1,6 +1,9 @@
 """The public surface and the mode switch, without loading a checkpoint."""
 from __future__ import annotations
 
+import sys
+import types
+
 import numpy as np
 import pytest
 
@@ -112,6 +115,58 @@ def test_fit_refuses_to_fit_on_too_few_examples():
     v.features = lambda state, q: np.zeros(8)
     report = v.fit([("s", {"q": "a"})], QS)
     assert report["q"]["fitted"] is False and "at least" in report["q"]["reason"]
+
+
+def test_load_defaults_to_the_small_model(monkeypatch):
+    """No argument means 0.8B. That is the published default and must not drift."""
+    from vegaml import hub
+
+    seen = {}
+
+    def fake_snapshot_download(repo_id, **kw):
+        seen.update(kw, repo_id=repo_id)
+        return "/tmp/snapshot"
+
+    stub = types.ModuleType("huggingface_hub")
+    stub.snapshot_download = fake_snapshot_download
+    monkeypatch.setitem(sys.modules, "huggingface_hub", stub)
+
+    assert hub.fetch() == "/tmp/snapshot"
+    assert seen["repo_id"] == hub.DEFAULT_REPO
+    assert seen["allow_patterns"] == hub.ALLOW_PATTERNS, "the default must read the repository root"
+
+
+def test_the_4b_reads_from_its_own_folder(monkeypatch):
+    from vegaml import hub
+
+    seen = {}
+
+    def fake_snapshot_download(repo_id, **kw):
+        seen.update(kw, repo_id=repo_id)
+        return "/tmp/snapshot"
+
+    stub = types.ModuleType("huggingface_hub")
+    stub.snapshot_download = fake_snapshot_download
+    monkeypatch.setitem(sys.modules, "huggingface_hub", stub)
+
+    out = hub.fetch("4b")
+    assert seen["repo_id"] == hub.DEFAULT_REPO, "both sizes live in one repository"
+    assert out.endswith("/4b")
+    assert all(p.startswith("4b/") for p in seen["allow_patterns"])
+
+
+def test_a_repo_id_or_path_still_works(monkeypatch, tmp_path):
+    from vegaml import hub
+
+    seen = {}
+    stub = types.ModuleType("huggingface_hub")
+    stub.snapshot_download = lambda repo_id, **kw: (seen.update(kw, repo_id=repo_id), "/tmp/s")[1]
+    monkeypatch.setitem(sys.modules, "huggingface_hub", stub)
+
+    hub.fetch("someone/their-model")
+    assert seen["repo_id"] == "someone/their-model"
+    assert seen["allow_patterns"] == hub.ALLOW_PATTERNS
+    assert hub.fetch(str(tmp_path)) == str(tmp_path)
 
 
 def test_modes_are_the_documented_three():

@@ -18,6 +18,17 @@ PKG = pathlib.Path(vegaml.__file__).parent
 EXECUTABLE = (".py", ".pyc", ".so", ".dll", ".dylib", ".sh", ".bash", ".pyd", ".pth")
 
 
+def test_every_variant_scopes_the_allow_list_to_its_own_folder():
+    """A size name must not widen what gets downloaded, only move where it is read from."""
+    for name, sub in hub.VARIANTS.items():
+        pats = hub.patterns_for(sub)
+        assert len(pats) == len(hub.ALLOW_PATTERNS), name
+        for pat in pats:
+            assert pat.endswith((".json", ".safetensors")), (name, pat)
+            if sub:
+                assert pat.startswith(sub + "/"), (name, pat)
+
+
 def test_allow_list_has_no_executable_extension():
     for pattern in hub.ALLOW_PATTERNS:
         assert not pattern.endswith(EXECUTABLE), pattern
