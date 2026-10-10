@@ -79,11 +79,55 @@ def fetch(repo_id: Optional[str] = None, revision: Optional[str] = None,
     else:
         repo, subfolder = name, ""
 
+    explicit = token is not None and token is not False
     if token is None:
         token = default_token()
 
     from huggingface_hub import snapshot_download
 
-    local = snapshot_download(repo, revision=revision, token=token, cache_dir=cache_dir,
-                              allow_patterns=patterns_for(subfolder))
+    try:
+        local = snapshot_download(repo, revision=revision, token=token, cache_dir=cache_dir,
+                                  allow_patterns=patterns_for(subfolder))
+    except Exception as exc:
+        # Matched by name rather than by class: importing huggingface_hub.errors here would make
+        # the whole library a hard import just to describe a failure.
+        if _is_auth_error(exc):
+            raise _auth_error(repo, name, token, explicit) from exc
+        raise
     return os.path.join(local, subfolder) if subfolder else local
+
+
+def _is_auth_error(exc: BaseException) -> bool:
+    """Whether the Hub refused for want of credentials, rather than failing some other way."""
+    names = {cls.__name__ for cls in type(exc).__mro__}
+    if names & {"RepositoryNotFoundError", "GatedRepoError"}:
+        return True
+    status = getattr(getattr(exc, "response", None), "status_code", None)
+    return status in (401, 403)
+
+
+def _auth_error(repo: str, asked_for: str, token, explicit: bool) -> PermissionError:
+    """The Hub says not-found-or-not-authorised. Say which of the two it probably is.
+
+    The Hub deliberately returns the same answer for "no such repository" and "exists but you may
+    not see it", so the raw error sends people hunting for a typo when the real answer is a missing
+    token. No token value is ever put in the message.
+    """
+    if explicit:
+        where = "a token was passed to this call"
+    elif token:
+        found = next((v for v in TOKEN_ENV if (os.environ.get(v) or "").strip()), "the environment")
+        where = "a token was read from %s" % found
+    elif token is False:
+        where = "token=False was passed, so no token was sent"
+    else:
+        where = "no token was found: none of %s is set" % ", ".join(TOKEN_ENV)
+
+    hint = ("Set HF_TOKEN to a token with read access to it, or pass token=... explicitly."
+            if not token else
+            "Check that this token has read access to that repository and has not been revoked.")
+    asked = "" if asked_for == repo else " (asked for %r)" % asked_for
+    return PermissionError(
+        "cannot read the checkpoint repository %r%s. The Hub returns the same answer for a "
+        "repository that does not exist and one you are not allowed to see, so either the id is "
+        "wrong or it is private or gated. Here, %s. %s" % (repo, asked, where, hint))

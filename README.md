@@ -124,7 +124,9 @@ vegaml.load("owner/some-repo") # anything else on the Hub
 vegaml.load("/path/on/disk")   # or a local directory
 ```
 
-A private or gated repository needs a Hub token. `load()` picks one up from `HF_TOKEN` in the
+A private or gated repository needs a Hub token, and without one the Hub answers 401, which it
+reports identically to "no such repository". `fetch` turns that into one sentence naming which of
+the two it is and where it looked for a token. `load()` picks one up from `HF_TOKEN` in the
 environment, so nothing has to be threaded through the call; pass `token=...` to override it, or
 `token=False` to ignore the environment and fetch anonymously. It stays optional: the published
 checkpoints are public and load with no token set.

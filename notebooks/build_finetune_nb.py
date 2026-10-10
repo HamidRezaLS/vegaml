@@ -40,9 +40,10 @@ def main():
 A gated adapter for **[vegaml](https://pypi.org/project/vegaml/)** on a public dataset, start to
 finish, on Kaggle's 2×T4.
 
-* **Model:** `nandakishorm/vega-08b-public-intents`, which is public, so no Hugging Face token is
-  needed. Two sizes live in it: **0.8B** (the default here) and **4B**. Change `VEGA_SIZE` in the
-  cell below to switch; each size caches separately, so switching never mixes the two.
+* **Model:** `nandakishorm/vega-08b-public-intents`. Two sizes live in it: **0.8B** (the default
+  here) and **4B**. Change `VEGA_SIZE` in the settings cell to switch; each size caches separately,
+  so switching never mixes the two. While that repository is private you need `HF_TOKEN` set in the
+  settings cell, otherwise the Hub answers 401 and the run stops at stage 1.
 * **Task:** `dair-ai/emotion`, 16k messages over six emotions, written as a typed `choice` question.
 * **Gate negatives:** `fancyzhx/ag_news`, a different task, so the adapter's gate learns when *not*
   to fire. An adapter that always fires is not routable.
@@ -63,22 +64,26 @@ seconds on a single GPU, so the second GPU is used where it helps and nowhere el
         md("""
 ## Settings
 
-`VEGA_SIZE` is the only thing most runs change. `HF_TOKEN` is optional: leave it unset and
-everything below still runs, since the checkpoint and both datasets are public. Set it (Kaggle:
-Add-ons → Secrets) to fine-tune a *private* checkpoint, or to push the adapter you train to your
-own account at the end.
+`VEGA_SIZE` is the only thing most runs change. `HF_TOKEN` is read from Kaggle Secrets if you have
+added one, and skipped if you have not. You need it for a checkpoint that is private or gated, and
+to push the adapter you train to your own account at the end. The datasets are public either way.
 """),
         code("""
 import os
 
 os.environ["VEGA_SIZE"] = "0.8b"          # "0.8b" (default) or "4b"
 
-# Optional. Uncomment to read it from Kaggle Secrets.
-# from kaggle_secrets import UserSecretsClient
-# os.environ["HF_TOKEN"] = UserSecretsClient().get_secret("HF_TOKEN")
+# A token is needed only for a checkpoint that is private or gated, or to push what you train.
+# Add-ons -> Secrets -> add one named HF_TOKEN and this picks it up; with none, this is a no-op
+# and the public path below runs unchanged.
+try:
+    from kaggle_secrets import UserSecretsClient
 
-SIZE = os.environ["VEGA_SIZE"]
-print("size:", SIZE, "| token set:", bool(os.environ.get("HF_TOKEN")))
+    os.environ["HF_TOKEN"] = UserSecretsClient().get_secret("HF_TOKEN")
+except Exception as exc:
+    print("no HF_TOKEN from Kaggle Secrets (%s): continuing without one" % type(exc).__name__)
+
+print("size:", os.environ["VEGA_SIZE"], "| token:", "set" if os.environ.get("HF_TOKEN") else "none")
 """),
         code("""
 import torch
