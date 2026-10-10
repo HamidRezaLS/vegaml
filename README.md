@@ -243,6 +243,40 @@ reference leads on most others, particularly reranking and multi-step reasoning.
 
 2.5× the phishing caught at McNemar p = 3e-11, and 2.1× faster with nothing leaving the machine.
 
+### Images
+
+The hosted baseline takes no image input, so there is no like-for-like comparison. On document
+pages it was given Apple Vision OCR of the same images and read that text, which makes its row a
+two-model pipeline rather than a model that sees.
+
+**RVL-CDIP-N**, 1,002 document pages, the 12 of 16 RVL-CDIP categories the set contains:
+
+| system | reads | accuracy | ECE | median latency |
+|---|---|---|---|---|
+| Apple Vision OCR + Jev 1.13.0 | text | **0.896** | **0.045** | **1,049 ms** |
+| **Vega 0.8B**, zero-shot | the image | 0.793 | 0.207 | 1,989 ms |
+| DiT, best published on this set | the image | 0.786 | n/a | n/a |
+
+DiT was trained on RVL-CDIP and is the strongest published result on this out-of-distribution set.
+Vega has never seen the dataset and lands level with it. Not quite like-for-like: Vega chose among
+the 12 categories present, while a classifier trained on RVL-CDIP chooses among all 16. The
+pipeline latency includes the 649 ms Apple Vision takes per page, without which the API call alone
+is 400 ms.
+
+**MMMU-Pro**, 300 items over 30 strata, chance 0.120:
+
+| system | reads | accuracy | ECE |
+|---|---|---|---|
+| Gemini 3.1 Pro, best reported Oct 2026 | the image | **0.839** | n/a |
+| Jev 1.13.0 | text only, no image input | 0.337 | 0.160 |
+| **Vega 0.8B** | the image | 0.240 | **0.052** |
+| Vega 0.8B, same questions | image withheld | 0.157 | 0.062 |
+
+An 800M model is nowhere near a frontier one on university-level reasoning. The result worth
+keeping is the last two rows: withholding the image costs 8.3 points, so the vision path carries
+real signal rather than the text answering alone. Calibration error is three times better than the
+hosted model's on the same items.
+
 ## How it works
 
 One prompt, one forward pass, then physics.
