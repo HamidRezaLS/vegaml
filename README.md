@@ -104,7 +104,6 @@ gives you the 0.8B, which is the default and the model every Jev comparison on t
 | backbone, frozen | Qwen3.5-0.8B | Qwen3.5-4B |
 | engine, trained | 14.3M params, 57 MB | 30.9M params, 124 MB |
 | task adapter | 0.84M params | 1.43M params |
-| zero-shot accuracy | 0.389 | **0.506** |
 | with the task adapter | 0.763 | **0.803** |
 | soft accuracy | 0.680 | **0.725** |
 | calibration error | 0.026 | **0.019** |
