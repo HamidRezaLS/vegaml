@@ -10,13 +10,23 @@
 
 Two readouts over the same frozen features, chosen with `mode`:
 
-* ``"engine"`` (the default) is the physics engine and its adapters. Zero-shot: it answers a question
-  it has never seen, and every answer carries a calibrated probability, a conformal set and an
-  abstain flag. Every benchmark figure published for this model is measured in this mode.
+* ``"engine"`` is the physics engine and its adapters. Zero-shot: it answers a question it has never
+  seen, and every answer carries a calibrated probability, a conformal set and an abstain flag.
+  Every benchmark figure published for this model is measured in this mode.
 * ``"ttt"`` is a small head fitted here, on your labelled examples, over the same features. Sharper
   where your label space matches the examples, and worthless outside them. It carries no calibration
   and no abstain flag, so it will answer confidently when it should not.
-* ``"both"`` returns both, side by side, which is the only honest way to pick between them.
+* ``"auto"`` (the default) is "ttt" for each question that has a head worth using and "engine" for
+  the rest. Fit nothing and it is exactly the engine, flags and all, which is why it is safe as the
+  default and why it still reproduces the published figures. Call :meth:`fit` and the questions you
+  fitted switch over without your having to remember a second argument. Every answer says which
+  readout produced it, in ``readout``.
+* ``"both"`` returns both, side by side, which is the only honest way to compare them.
+
+"Worth using" is not "fitted": :meth:`fit` refuses a head whose cross-validated accuracy is at or
+below chance, since such a head has learned nothing and would dress noise up as a sharper answer.
+``"auto"`` goes further and uses only heads whose accuracy is *known* to beat chance, so a head
+fitted on too few examples to cross-validate is left to the engine.
 """
 from __future__ import annotations
 
@@ -26,18 +36,18 @@ from .hub import default_token, fetch
 from .ttt import TTTHead
 
 __all__ = ["load", "Vega", "TTTHead", "fetch", "default_token", "__version__"]
-__version__ = "0.6.1"
+__version__ = "0.7.0"
 
-MODES = ("engine", "ttt", "both")
+MODES = ("auto", "engine", "ttt", "both")
 
 
 class Vega:
     """A loaded checkpoint, with both readouts over one set of frozen features.
 
-    `mode` sets the default readout for :meth:`decide`; "engine" unless you change it.
+    `mode` sets the default readout for :meth:`decide`; "auto" unless you change it.
     """
 
-    def __init__(self, engine, mode: str = "engine"):
+    def __init__(self, engine, mode: str = "auto"):
         if mode not in MODES:
             raise ValueError("mode must be one of %s, got %r" % (", ".join(MODES), mode))
         self.engine = engine
@@ -48,7 +58,7 @@ class Vega:
     @classmethod
     def from_pretrained(cls, repo_or_path: Optional[str] = None, backbone: Optional[str] = None,
                         device: Optional[str] = None, adapters: str = "auto",
-                        mode: str = "engine", revision: Optional[str] = None,
+                        mode: str = "auto", revision: Optional[str] = None,
                         token: Union[str, bool, None] = None,
                         max_len: Optional[int] = None) -> "Vega":
         """Load a checkpoint from the Hub or from a local directory.
@@ -93,21 +103,33 @@ class Vega:
             min_examples: int = 6) -> Dict[str, Dict]:
         """Fit one TTT head per question from labelled examples.
 
-        `examples` is a sequence of ``(state, {question_id: label})``. One forward pass is run per
-        example per question, so the cost is ``len(examples) × len(questions)`` reads of the frozen
-        backbone. That is seconds on a GPU for a few dozen examples, and it is paid once.
+        `examples` is a sequence of ``(state, {question_id: label})``, or
+        ``(state, {question_id: label}, {question_id: question})`` when the question itself differs
+        between examples. The third element matters more often than it looks: a head reads the
+        features of the whole prompt, so if what distinguishes your examples sits in a question's
+        ``instructions`` rather than in the state, as it does in most intent classification, then
+        reusing one question for every example hands them all an identical prompt, identical
+        features, and a head fitted on noise. Pass the per-example question and that cannot happen.
 
-        Returns, per question id, the number of examples used and a cross-validated accuracy. **Read
-        that number.** A head at or below chance has learned nothing, and its answers are noise
-        dressed up as probabilities.
+        One forward pass is run per example per question, so the cost is
+        ``len(examples) × len(questions)`` reads of the frozen backbone. That is seconds on a GPU
+        for a few dozen examples, and it is paid once.
+
+        A head whose cross-validated accuracy is at or below chance is **not kept**: it has learned
+        nothing, and serving it would dress noise up as a sharper answer. The report says so per
+        question, with the accuracy that was measured.
         """
         report: Dict[str, Dict] = {}
         for qid, q in questions.items():
             X, y = [], []
-            for state, labels in examples:
-                if qid in labels:
-                    X.append(self.features(state, q))
-                    y.append(str(labels[qid]))
+            for example in examples:
+                state, labels = example[0], example[1]
+                if qid not in labels:
+                    continue
+                per_example = example[2] if len(example) > 2 else None
+                asked = (per_example or {}).get(qid, q)
+                X.append(self.features(state, asked))
+                y.append(str(labels[qid]))
             if len(X) < min_examples:
                 report[qid] = {"fitted": False, "examples": len(X),
                                "reason": "needs at least %d labelled examples" % min_examples}
@@ -116,15 +138,23 @@ class Vega:
             head = TTTHead(labels_for_q).fit(X, y)
             cv = head.cross_val_accuracy(X, y, folds=folds)
             chance = 1.0 / max(len(labels_for_q), 2)
-            self.heads[qid] = (head, cv)
             # cv is None when there are too few examples to cross-validate. That is "unknown", not
-            # "fine": reporting False there would read as a pass the data cannot support.
-            report[qid] = {"fitted": True, "examples": len(X), "cv_accuracy": cv,
-                           "chance": round(chance, 3),
-                           "at_or_below_chance": None if cv is None else cv <= chance}
+            # "fine": the head is kept so mode="ttt" can still use it deliberately, but "auto"
+            # leaves those questions to the engine rather than trust an unmeasured head.
+            beats_chance = None if cv is None else cv > chance
+            if beats_chance is not False:
+                self.heads[qid] = (head, cv)
+            report[qid] = {"fitted": beats_chance is not False, "examples": len(X),
+                           "cv_accuracy": cv, "chance": round(chance, 3),
+                           "at_or_below_chance": None if cv is None else not beats_chance,
+                           "used_by_auto": bool(beats_chance)}
+            if beats_chance is False:
+                report[qid]["reason"] = ("cross-validated accuracy %.3f is at or below the chance "
+                                         "level %.3f, so the head was discarded" % (cv, chance))
             if cv is None:
                 report[qid]["cv_note"] = ("too few examples for %d-fold cross-validation, so the "
-                                          "head's accuracy is unknown; %d or more would measure it"
+                                          "head's accuracy is unknown; %d or more would measure it. "
+                                          "mode='auto' will leave this question to the engine"
                                           % (folds, 2 * folds))
         return report
 
@@ -133,21 +163,25 @@ class Vega:
                views: int = 1) -> Dict:
         """Answer every question from one read of the state.
 
-        With ``mode="engine"`` the result is the engine's own, unchanged. With ``"ttt"`` each answer
-        comes from the fitted head for that question. With ``"both"`` the result carries
+        With ``mode="auto"``, the default, each question is answered by its head when it has one
+        worth using and by the engine otherwise, and every answer carries ``readout`` saying which.
+        Fit nothing and this is the engine's own result, unchanged. With ``"engine"`` it is always
+        the engine's. With ``"ttt"`` every answer comes from a fitted head, and a question without
+        one is an error rather than a silent fall back. With ``"both"`` the result carries
         ``answers`` (engine) and ``ttt`` side by side.
         """
         mode = mode or self.mode
         if mode not in MODES:
             raise ValueError("mode must be one of %s, got %r" % (", ".join(MODES), mode))
-        if mode in ("ttt", "both"):
+        if mode == "ttt":
             missing = [q for q in questions if q not in self.heads]
-            if missing and mode == "ttt":
+            if missing:
                 raise RuntimeError(
                     "no TTT head for %s. Call fit(examples, questions) first, or use "
                     "mode='engine'." % ", ".join(sorted(missing)))
-        if mode == "ttt":
             return {"mode": "ttt", "answers": self._ttt_answers(state, questions)}
+        if mode == "auto":
+            return self._auto(state, questions, alpha=alpha, views=views)
         out = self.engine.decide(state, questions, alpha=alpha, views=views)
         if mode == "engine":
             out["mode"] = "engine"
@@ -155,6 +189,31 @@ class Vega:
         out["mode"] = "both"
         out["ttt"] = self._ttt_answers(state, questions, skip_missing=True)
         return out
+
+    def _auto(self, state, questions: Mapping, alpha: str, views: int) -> Dict:
+        """A head per question where one is known to beat chance, the engine everywhere else."""
+        by_head = [qid for qid in questions if self._head_beats_chance(qid, questions[qid])]
+        by_engine = {qid: q for qid, q in questions.items() if qid not in by_head}
+        out: Dict = {"mode": "auto", "answers": {}}
+        if by_engine:
+            out = self.engine.decide(state, by_engine, alpha=alpha, views=views)
+            out["mode"] = "auto"
+            for qid in by_engine:
+                out["answers"][qid]["readout"] = "engine"
+        for qid, answer in self._ttt_answers(state, {q: questions[q] for q in by_head}).items():
+            answer["readout"] = "ttt"
+            out["answers"][qid] = answer
+        # Questions come back in the order they were asked, not grouped by readout.
+        out["answers"] = {qid: out["answers"][qid] for qid in questions}
+        return out
+
+    def _head_beats_chance(self, qid: str, question: Mapping) -> bool:
+        """Only a head with a *measured* accuracy above chance is used without being asked for."""
+        head_cv = self.heads.get(qid)
+        if head_cv is None:
+            return False
+        _, cv = head_cv
+        return cv is not None and cv > 1.0 / max(len(label_ids(question)), 2)
 
     def _ttt_answers(self, state, questions: Mapping, skip_missing: bool = False) -> Dict:
         answers: Dict[str, Dict] = {}

@@ -65,3 +65,61 @@ def test_label_ids_covers_all_three_answer_types():
     assert label_ids({"type": "boolean", "criteria": {"true": "t", "false": "f"}}) == ["false", "true"]
     assert label_ids({"type": "score", "criteria": ["low", "mid", "high"]}) == ["0", "1", "2"]
     assert label_ids({"type": "choice", "criteria": {"billing": "x", "tech": "y"}}) == ["billing", "tech"]
+
+
+# --------------------------------------------------------------- fitting contracts
+class _Engine:
+    cfg = {"max_len": 73728}
+    model_dir = "/nowhere"
+
+    def decide(self, state, questions, alpha="0.1", views=1):
+        return {"answers": {q: {"probs": {"a": 1.0}, "choice": "a"} for q in questions}}
+
+
+def _four_option_question():
+    return {"type": "choice", "instructions": "which?",
+            "criteria": {k: "" for k in ("a", "b", "c", "d")}}
+
+
+def test_fit_reads_each_example_through_its_own_question_when_given_one():
+    """The failure this prevents: when what varies sits in the instructions rather than the state,
+    one shared question gives every example the same prompt and the head is fitted on noise."""
+    import vegaml
+
+    seen = []
+    v = vegaml.Vega(_Engine())
+    v.features = lambda state, q: seen.append(q["instructions"]) or [float(len(seen))]
+    q = _four_option_question()
+    examples = [({}, {"t": "a"}, {"t": dict(q, instructions="utterance %d" % i)})
+                for i in range(8)]
+    v.fit(examples, {"t": q}, min_examples=4)
+    assert len(set(seen)) == 8, "every example must be read through its own question"
+
+
+def test_fit_still_accepts_two_tuples():
+    import vegaml
+
+    v = vegaml.Vega(_Engine())
+    v.features = lambda state, q: [float(state)]
+    report = v.fit([(i, {"t": "a" if i % 2 else "b"}) for i in range(8)],
+                   {"t": _four_option_question()}, min_examples=4)
+    assert report["t"]["examples"] == 8
+
+
+def test_a_head_at_or_below_chance_is_not_kept():
+    import numpy as np
+
+    import vegaml
+
+    rng = np.random.default_rng(0)
+    v = vegaml.Vega(_Engine())
+    noise = rng.normal(size=(40, 8))
+    v.features = lambda state, q: noise[state]
+    # Labels independent of the features: nothing to learn, so cross-validation cannot beat chance.
+    examples = [(i, {"t": "abcd"[i % 4]}) for i in range(40)]
+    report = v.fit(examples, {"t": _four_option_question()})
+    assert report["t"]["at_or_below_chance"] is True
+    assert report["t"]["fitted"] is False
+    assert report["t"]["used_by_auto"] is False
+    assert "t" not in v.heads, "a head that learned nothing must not be served"
+    assert "reason" in report["t"]

@@ -31,7 +31,7 @@ publishes through PyPI Trusted Publishing, so no API token exists in this reposi
 ```python
 import vegaml
 
-v = vegaml.load()            # the 0.8B, mode="engine": both are the defaults
+v = vegaml.load()            # the 0.8B, mode="auto": both are the defaults
 # v = vegaml.load("4b")      # the 4B, same repository, same interface
 
 out = v.decide(
@@ -56,22 +56,41 @@ Both questions are answered from **one** read of the state.
 
 | mode | needs examples | carries | use it when |
 |---|---|---|---|
-| `"engine"` *(default)* | no, zero-shot | calibration, conformal sets, abstain | the normal case, and every published figure below |
+| `"auto"` *(default)* | no, uses them if present | whatever the chosen readout carries, plus `readout` | the normal case |
+| `"engine"` | no, zero-shot | calibration, conformal sets, abstain | reproducing every published figure below |
 | `"ttt"` | yes, 6 minimum | nothing, and it answers even when it should not | you have labels for exactly this question |
 | `"both"` | yes | both, side by side | deciding which to trust |
+
+`"auto"` answers each question with its head where it has one worth using, and with the engine
+everywhere else. Fit nothing and it **is** the engine, flags and all, which is why it is safe as the
+default and why it still reproduces the figures below. Every answer says which readout produced it:
 
 ```python
 examples = [({"body": "cancel my account"}, {"churn": "true"}),
             ({"body": "how do I export?"},  {"churn": "false"})]            # ... 20 or so
 
 report = v.fit(examples, questions)
-print(report["churn"]["cv_accuracy"], report["churn"]["at_or_below_chance"])
+print(report["churn"]["cv_accuracy"], report["churn"]["used_by_auto"])
 
-out = v.decide(state, questions, mode="ttt")
+out = v.decide(state, questions)                 # auto
+print(out["answers"]["churn"]["readout"])        # 'ttt' here, 'engine' for anything unfitted
 ```
 
-`fit` returns a cross-validated accuracy per question. **Read it.** A head at or below chance has
-learned nothing and its probabilities are noise; the engine is the honest answer there.
+`fit` cross-validates every head and **discards any that does not beat chance**, because such a head
+has learned nothing and its probabilities are noise. `"auto"` is stricter still: it uses only heads
+whose accuracy is *known* to beat chance, so one fitted on too few examples to cross-validate is
+left to the engine rather than trusted unmeasured.
+
+If what distinguishes your examples sits in a question's `instructions` rather than in the state, as
+it does in most intent classification, pass the question per example or every example gets an
+identical prompt and the head is fitted on noise:
+
+```python
+examples = [(state, labels, {"intent": dict(question, instructions="...this row's text...")}), ...]
+```
+
+**Changed in 0.7.0.** `mode="auto"` is the new default. `"engine"` is unchanged and still what every
+published figure measures, so pass it explicitly when reproducing them.
 
 ### Images
 
@@ -249,6 +268,9 @@ items. Those numbers are a smoke test, not a result. The full 16k run on Kaggle 
 The figure at the top of this page is the table below. Item-paired against a live Jev 1.13.0 over
 identical items, no tuning on the evaluation data. These are the areas where this model leads; the
 reference leads on most others, particularly reranking and multi-step reasoning.
+
+Every figure here is `mode="engine"`, zero-shot, with no head fitted. That is also what `"auto"`
+gives you until you call `fit`, so these numbers are what the default produces out of the box.
 
 | task | this model | Jev 1.13.0 |
 |---|---|---|

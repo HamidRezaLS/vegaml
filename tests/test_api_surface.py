@@ -38,10 +38,52 @@ def _vega_with_head(mode="engine"):
     return v
 
 
-def test_engine_is_the_default_mode():
-    assert Vega(_FakeEngine()).mode == "engine"
-    out = Vega(_FakeEngine()).decide("s", QS)
-    assert out["mode"] == "engine" and "ttt" not in out
+def test_auto_is_the_default_mode():
+    assert Vega(_FakeEngine()).mode == "auto"
+
+
+def test_auto_with_nothing_fitted_is_the_engine_flags_and_all():
+    """The reason auto is safe as the default: fit nothing and it is the engine's own answer."""
+    engine = _FakeEngine()
+    out = Vega(engine).decide("s", QS)
+    assert out["mode"] == "auto" and "ttt" not in out
+    assert out["answers"]["q"]["readout"] == "engine"
+    assert engine.calls, "the engine was asked"
+
+
+def test_auto_prefers_a_head_that_is_known_to_beat_chance():
+    v = _vega_with_head("auto")             # cv 0.95 over two labels, chance 0.5
+    out = v.decide("s", QS)
+    assert out["answers"]["q"]["readout"] == "ttt"
+    assert not v.engine.calls, "no question was left for the engine"
+
+
+def test_auto_leaves_a_head_at_or_below_chance_to_the_engine():
+    v = _vega_with_head("auto")
+    head, _ = v.heads["q"]
+    v.heads["q"] = (head, 0.5)              # exactly chance over two labels
+    out = v.decide("s", QS)
+    assert out["answers"]["q"]["readout"] == "engine"
+
+
+def test_auto_leaves_an_unmeasured_head_to_the_engine():
+    """cv None is "unknown", and auto does not trust an unmeasured head without being asked."""
+    v = _vega_with_head("auto")
+    head, _ = v.heads["q"]
+    v.heads["q"] = (head, None)
+    out = v.decide("s", QS)
+    assert out["answers"]["q"]["readout"] == "engine"
+
+
+def test_auto_can_split_one_request_between_the_readouts():
+    v = _vega_with_head("auto")
+    questions = dict(QS, other={"type": "choice", "instructions": "which?",
+                                "criteria": {"a": "", "c": ""}})
+    out = v.decide("s", questions)
+    assert [k for k in out["answers"]] == ["q", "other"], "asked order is kept"
+    assert out["answers"]["q"]["readout"] == "ttt"
+    assert out["answers"]["other"]["readout"] == "engine"
+    assert v.engine.calls[-1][1] == ("other",), "only the unfitted question reached the engine"
 
 
 def test_unknown_mode_is_rejected_at_construction_and_at_call():
@@ -170,8 +212,8 @@ def test_a_repo_id_or_path_still_works(monkeypatch, tmp_path):
     assert hub.fetch(str(tmp_path)) == str(tmp_path)
 
 
-def test_modes_are_the_documented_three():
-    assert MODES == ("engine", "ttt", "both")
+def test_modes_are_the_documented_four():
+    assert MODES == ("auto", "engine", "ttt", "both")
 
 
 def test_public_names_are_exported():
