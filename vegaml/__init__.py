@@ -26,7 +26,7 @@ from .hub import default_token, fetch
 from .ttt import TTTHead
 
 __all__ = ["load", "Vega", "TTTHead", "fetch", "default_token", "__version__"]
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 MODES = ("engine", "ttt", "both")
 

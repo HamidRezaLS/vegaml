@@ -131,6 +131,9 @@ class Vega:
     @staticmethod
     def _internal(qdef):
         t = qdef["type"]
+        if t not in QTYPES:
+            raise ValueError("unknown question type %r: expected one of %s"
+                             % (t, ", ".join(QTYPES)))
         crit = qdef.get("criteria")
         if t == "choice" and isinstance(crit, list):
             crit = {c: None for c in crit}

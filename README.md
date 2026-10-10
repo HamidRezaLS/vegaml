@@ -104,11 +104,10 @@ Three, named in every question's `type` field:
 | `score` | an integer level against ordered criteria, plus the expected value |
 | `boolean` | the probability that a statement holds |
 
-**Changed in 0.5.0.** The third type was previously called `noul`. The name said nothing to anyone
-reading it, so it is now `boolean`. Questions using the old name are rejected rather than silently
-reinterpreted. Checkpoints published before the change store their conformal thresholds under the
-old key, and the loader remaps them, so an older checkpoint still loads with its prediction sets
-intact.
+**Changed in 0.5.0.** `boolean` was renamed from a coined word that told a reader nothing. A
+question using the old name is rejected with the valid types listed, rather than silently
+reinterpreted. Checkpoints published before the change key their conformal thresholds by the old
+name; the loader remaps them, so an older checkpoint still loads with its prediction sets intact.
 
 ## Two sizes
 
