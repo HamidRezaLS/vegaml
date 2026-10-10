@@ -152,7 +152,8 @@ def test_the_4b_reads_from_its_own_folder(monkeypatch):
     out = hub.fetch("4b")
     assert seen["repo_id"] == hub.DEFAULT_REPO, "both sizes live in one repository"
     assert out.endswith("/4b")
-    assert all(p.startswith("4b/") for p in seen["allow_patterns"])
+    assert all(p.startswith("4b/") for p in seen["allow_patterns"]
+               if p != hub.COUNTER_FILE), "only the counter file sits outside the folder"
 
 
 def test_a_repo_id_or_path_still_works(monkeypatch, tmp_path):

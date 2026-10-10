@@ -41,8 +41,13 @@ def default_token() -> Optional[str]:
     return None
 
 
+#: The Hub counts a repository download when this file is requested, and counts nothing when a
+#: repository has no file it recognises. It carries no settings: the runtime reads vega_config.json.
+COUNTER_FILE = "config.json"
+
 #: What the runtime reads. No executable file is on this list.
 ALLOW_PATTERNS = [
+    COUNTER_FILE,
     "vega_config.json",
     "engine.safetensors",
     "adapters/*.safetensors",
@@ -51,10 +56,15 @@ ALLOW_PATTERNS = [
 
 
 def patterns_for(subfolder: str) -> list[str]:
-    """The allow-list, scoped to one model inside the repository."""
+    """The allow-list, scoped to one model inside the repository.
+
+    The counter file is always asked for at the repository root, whichever size is being loaded,
+    because that is the path the Hub's download counter watches. It is a few hundred bytes and
+    nothing reads it.
+    """
     if not subfolder:
         return list(ALLOW_PATTERNS)
-    return [f"{subfolder}/{p}" for p in ALLOW_PATTERNS]
+    return [COUNTER_FILE] + [f"{subfolder}/{p}" for p in ALLOW_PATTERNS if p != COUNTER_FILE]
 
 
 def fetch(repo_id: Optional[str] = None, revision: Optional[str] = None,

@@ -25,7 +25,9 @@ def test_every_variant_scopes_the_allow_list_to_its_own_folder():
         assert len(pats) == len(hub.ALLOW_PATTERNS), name
         for pat in pats:
             assert pat.endswith((".json", ".safetensors")), (name, pat)
-            if sub:
+            # The download counter watches one file at the repository root, so that one is exempt
+            # from the subfolder rule. Nothing else may escape its own folder.
+            if sub and pat != hub.COUNTER_FILE:
                 assert pat.startswith(sub + "/"), (name, pat)
 
 
@@ -62,6 +64,19 @@ def test_download_is_restricted_to_the_allow_list(monkeypatch):
     hub.fetch("someone/their-model")
     assert seen["allow_patterns"] == hub.ALLOW_PATTERNS, "fetch must constrain what it downloads"
     assert seen["repo_id"] == "someone/their-model"
+
+
+def test_the_counter_file_is_requested_for_every_size():
+    """The Hub counts a download only when the file it watches is actually fetched.
+
+    The 4B lives in a subfolder, so its patterns are prefixed. The counter file must stay at the
+    repository root in both cases or loading the 4B would register nothing.
+    """
+    for subfolder in ("", "4b"):
+        pats = hub.patterns_for(subfolder)
+        assert hub.COUNTER_FILE in pats, subfolder
+        assert pats.count(hub.COUNTER_FILE) == 1, "asked for twice"
+    assert "4b/" + hub.COUNTER_FILE not in hub.patterns_for("4b"), "must not be subfolder-scoped"
 
 
 def test_local_directory_passes_through(tmp_path):

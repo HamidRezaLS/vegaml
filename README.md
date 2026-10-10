@@ -18,6 +18,11 @@ generated anywhere in the path.
 pip install vegaml
 ```
 
+[![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/drive/1ZxS_Ee4-oyfo8ePKiAgbehv5I1Rh3F7O?usp=sharing)
+
+Inference on a single T4, end to end, in the browser.
+
+
 <sub>Releases are cut by tagging `vX.Y.Z`: CI builds, checks the version matches the tag, and
 publishes through PyPI Trusted Publishing, so no API token exists in this repository.</sub>
 
@@ -364,6 +369,14 @@ temperature. Each adapter route carries its own calibration vector. On top of th
 split-conformal set at a chosen risk level, an **abstain** flag below a fitted confidence floor, and an
 **unbound** flag when the particle settled far from every well, which is the model's own way of saying the
 question is outside what it knows.
+
+## Download counts
+
+The repository carries a `config.json` so the Hub can count downloads; it counts nothing for a
+repository with no file it recognises. It holds no settings, nothing reads it, and the runtime
+still reads `vega_config.json`. `fetch` asks for it from the repository root on every load,
+including the 4B, which otherwise reads only from its own subfolder: a counter file that is never
+requested counts nothing.
 
 ## Security
 
