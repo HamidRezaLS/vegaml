@@ -117,7 +117,7 @@ class VegaVision:
 
     @torch.no_grad()
     def _decide(self, state_text, questions, image=None):
-        from vega_common import QTYPES, route_adapters, softmax_np, thermal_features, thermal_tau
+        from ._common import QTYPES, route_adapters, softmax_np, thermal_features, thermal_tau
         t0 = time.time()
         qids = list(questions)
         qs = [self.d._internal(questions[k]) for k in qids]
