@@ -6,6 +6,7 @@ on:
     branches: [main]
   schedule:
     - cron: "17 6 * * 1"     # Monday morning: catch CVEs disclosed since the last push
+  workflow_dispatch:         # so a scan can be re-run without an empty commit
 
 # Cancel outdated pull request runs; on main, run per commit.
 concurrency:
