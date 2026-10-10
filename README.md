@@ -139,28 +139,85 @@ vegaml.load("owner/private-repo", token=tok)    # or pass it explicitly
 ## Fine-tuning
 
 [`notebooks/vega_finetune_2xT4_kaggle.ipynb`](notebooks/vega_finetune_2xT4_kaggle.ipynb) trains a
-gated adapter on Kaggle's 2×T4, end to end, against public artefacts only. No Hugging Face token is
-needed to run it.
-
-`VEGA_SIZE` in the notebook's settings cell picks which size to tune, `"0.8b"` (the default) or
-`"4b"`. The two backbones pool to different widths, so each size keeps its own feature cache and its
-own output directory and switching between them never mixes the two.
-
-A token is optional and unlocks two things: fine-tuning a **private** checkpoint, and pushing the
-adapter you trained to your own account with `--push-to owner/repo` on the eval stage. Only the
-adapter and its metadata are uploaded, a few hundred kilobytes, and the repository is created
-private unless you pass `--public`.
+gated adapter end to end on Kaggle's 2×T4, and
+[`notebooks/vega_finetune.py`](notebooks/vega_finetune.py) is the script it writes to disk and runs,
+so the same three commands work on any machine with a GPU.
 
 The language model stays frozen. What is trained is a rank-32 adapter on seven engine projections
 plus its gate, about **0.84M parameters**, on `dair-ai/emotion` as a typed `choice` question, with
-gate negatives drawn from `ag_news` so the adapter learns when *not* to fire. Thermal calibration and
-the conformal thresholds are refitted on a validation split that training never sees, and travel
-with the adapter.
+gate negatives drawn from `ag_news` so the adapter learns when *not* to fire. An adapter that always
+fires is not routable. Thermal calibration and the conformal thresholds are refitted afterwards on a
+validation split that training never sees, and travel with the adapter.
 
-Both GPUs are used for the one stage where a second GPU helps: the frozen read, sharded across
-them and cached. Training then runs on those cached features, where an epoch is seconds. The output
-is `emotion.safetensors` plus `emotion.json` in the layout the loader already reads, stamped with the
-SHA-256 of the base engine it was trained against so it cannot be loaded onto a different one.
+### The three stages
+
+```bash
+pip install vegaml datasets
+
+# 1. frozen features, sharded across both GPUs, cached to disk. The long part.
+torchrun --nproc_per_node=2 vega_finetune.py extract --batch 32
+
+# 2. the adapter, on those cached features. Minutes.
+python vega_finetune.py train --epochs 3 --batch 64 --rank 32 --lr 3e-4
+
+# 3. base engine against the adapter on the held-out split
+python vega_finetune.py eval --batch 64
+```
+
+Only stage 1 uses both GPUs, because only stage 1 benefits. The frozen read happens exactly once per
+row and is the expensive part; training then runs on cached features, where an epoch is seconds on
+one GPU. Launching stages 2 and 3 under `torchrun` would buy nothing, so they are not.
+
+### Settings
+
+| variable | default | what it does |
+|---|---|---|
+| `VEGA_SIZE` | `0.8b` | which size to tune, `0.8b` or `4b` |
+| `HF_TOKEN` | unset | needed for a private or gated checkpoint, and to push |
+| `VEGA_MODEL_REPO` | the size name | a different checkpoint repository or a local path |
+| `VEGA_BACKBONE` | per size | a different frozen backbone |
+| `VEGA_WORK` | `/kaggle/working` | where features, the adapter and results are written |
+
+The two backbones pool to different widths, so each size keeps its own feature cache
+(`features-0.8b`, `features-4b`) and its own output directory. Switching `VEGA_SIZE` never mixes the
+two or silently reads the wrong cache.
+
+In the notebook these live in one settings cell near the top, which also reads `HF_TOKEN` from
+Kaggle Secrets when you have added one and carries on when you have not.
+
+### Pushing what you trained
+
+```bash
+export HF_TOKEN=...
+python vega_finetune.py eval --batch 64 --push-to your-name/vega-emotion-adapter
+```
+
+Only the adapter and its metadata go up, a few hundred kilobytes: no backbone and no engine. The
+repository is created **private** unless you add `--public`. With no token the push is skipped with
+a logged line rather than failing the run. `VEGA_PUSH_TO` sets the destination if you would rather
+not pass the flag.
+
+### Using the result
+
+`adapter-<size>/` holds `emotion.safetensors` and `emotion.json` in the layout the loader already
+reads. Drop both into a checkpoint's `adapters/` directory and they load automatically. The gate
+decides per question whether they apply, and the adapter's own calibration travels with it.
+
+```python
+import vegaml
+
+v = vegaml.load("your-copy-of-the-checkpoint")   # adapters/ picked up automatically
+v.decide("I can't believe they remembered my birthday",
+         {"emotion": {"type": "choice",
+                      "instructions": "Which emotion does this message express?",
+                      "criteria": {"sadness": "...", "joy": "...", "love": "...",
+                                   "anger": "...", "fear": "...", "surprise": "..."}}})
+```
+
+The adapter records the SHA-256 of the base engine it was trained against, and the loader refuses it
+against a different one rather than silently producing nonsense.
+
+### What has actually been run
 
 All three stages were run end to end before this was committed, but on a laptop and a **96-row
 slice**, not on two T4s: extract → train → eval completed, two-rank sharding was checked to
