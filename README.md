@@ -12,13 +12,15 @@ probability, a conformal answer set and an explicit abstain flag.
 **800M or 4B parameters · 73,728-token context · images · runs on your own hardware.** No text is
 generated anywhere in the path.
 
-![Vega 0.8B and 4B against a hosted reference over 3,841 decisions](assets/vega_benchmark_table.png)
+![Where Vega comes out ahead of a hosted reference](assets/vega_benchmark_wins.png)
 
-<sub>One run, 2026-10-11, two Tesla T4s, 43 public tasks plus JevBench and DecisionBench. Every
-cell is read out of the run's own JSON by
-[`bench/make_table_png.py`](bench/make_table_png.py), and the run is
+<sub>Every place the local model beat a hosted reference in one run on 2026-10-11, two Tesla T4s,
+3,841 decisions per system. The win list is derived from the run's own JSON by
+[`bench/make_wins_png.py`](bench/make_wins_png.py), so a row that stops being a win disappears by
+itself. The rest of the menu goes the other way and is
+[right below](#the-rest-of-the-menu). The run is
 [`notebooks/vega_benchmark_2xT4.ipynb`](notebooks/vega_benchmark_2xT4.ipynb), which you can run
-yourself on a free Kaggle session. [How to check it](#running-it-yourself).</sub>
+yourself on a free Kaggle session.</sub>
 
 ```bash
 pip install vegaml
@@ -295,10 +297,62 @@ Every figure here is `mode="engine"`, zero-shot, with no head fitted. That is al
 gives you until you call `fit`, so these numbers are what the default produces out of the box.
 Nothing is tuned on evaluation data, and the hosted reference is called live over the same rows.
 
-### The whole menu
+### Where it comes out ahead
 
-The figure at the top of this page, as text. 43 public tasks at up to 60 rows each, the JevBench
-public tiers, and DecisionBench: 3,841 decisions per system, one run, 2026-10-11.
+The figure at the top of this page, as text. Every row of this run where a local model beat the
+hosted one, and nothing else.
+
+| benchmark | Vega 0.8B | Vega 4B | Jev |
+| --- | ---: | ---: | ---: |
+| **Public tasks it wins, of the 43 on the menu** | | | |
+| unfair_tos, 57 rows, +12 | 0.737 | **0.877** | 0.667 |
+| tweet_stance_abortion, 55 rows, +6 | 0.364 | **0.545** | 0.436 |
+| prompt_injections, 55 rows, +5 | 0.746 | **0.855** | 0.764 |
+| tweet_sentiment, 59 rows, +4 | 0.424 | **0.593** | 0.525 |
+| tweet_offensive, 59 rows, +3 | **0.780** | **0.780** | 0.729 |
+| enron_spam, 60 rows, +3 | **1.000** | **1.000** | 0.950 |
+| jailbreak_cls, 58 rows, +2 | 0.983 | **1.000** | 0.966 |
+| glue_rte, 60 rows, +2 | 0.633 | **0.883** | 0.850 |
+| emotion, 60 rows, +2 | 0.550 | **0.650** | 0.617 |
+| toxic_chat_toxicity, 60 rows, +1 | 0.950 | **1.000** | 0.983 |
+| superglue_cb, 45 rows, +1 | 0.667 | **0.822** | 0.800 |
+| clinc150_oos, 60 rows, +1 | 0.683 | **0.900** | 0.883 |
+| **Slices it wins** | | | |
+| JevBench family:temporal_numeric, 15 items | **0.467** | 0.400 | 0.200 |
+| DecisionBench domain:privacy, 25 items | 0.880 | **1.000** | 0.960 |
+| DecisionBench domain:public_sector, 25 items | 0.760 | **0.960** | 0.880 |
+| **Calibration and cost, whole suites** | | | |
+| Public menu, negative log likelihood | 1.099 | **0.768** | 0.878 |
+| Public menu, p50 ms per decision | **74** | 106 | 162 |
+| DecisionBench, calibration error | 0.103 | **0.098** | 0.122 |
+| DecisionBench, negative log likelihood | 1.628 | **1.420** | 3.196 |
+| DecisionBench, KL to the gold distribution | 1.012 | **0.854** | 6.099 |
+| DecisionBench, rows answered | **1.000** | **1.000** | 0.997 |
+| DecisionBench, p50 ms per decision | **85** | 245 | 163 |
+
+Three kinds of win sit in that table and they do not carry the same weight.
+
+**The calibration block is the one to trust.** It is measured on all 1,075 DecisionBench rows, and
+the margins are wide: the likelihood is better by a factor of two and the distance to the gold
+distribution by a factor of seven, because the hosted model is confident at 0.874 on rows it gets
+right 0.752 of the time. The local models also answer every row, and the 0.8B answers in 74 ms on
+a T4 with nothing leaving the machine.
+
+**The task wins are thin.** A public task is at most 60 rows, so the `+n` in each label is the
+whole margin in rows. Eight of the twelve are three rows or fewer. Two of the widest have a
+baseline problem: `unfair_tos` sits only 2 rows above its own majority class while the hosted
+model sits 10 below it, and `tweet_stance_abortion` is 7 rows below its majority class, so there
+both models lose to answering the same thing every time. The one that survives a careful look is
+`prompt_injections`: 0.855 against 0.764, 15 rows above a 0.582 majority class.
+
+**The slices are hints.** `temporal_numeric` is 4 net rows of 15, and both DecisionBench domains
+are one and two rows. Worth chasing at a larger n, not worth quoting.
+
+### The rest of the menu
+
+The other side of the same run, so the table above has a frame. 43 public tasks at up to 60 rows
+each, the JevBench public tiers, and DecisionBench: 3,841 decisions per system. The same thing as
+a picture is [`assets/vega_benchmark_table.png`](assets/vega_benchmark_table.png).
 
 | metric | Vega 0.8B | Vega 4B | Jev |
 | --- | ---: | ---: | ---: |
@@ -365,11 +419,10 @@ versions reproduce to the row; the hosted column will not, because its weights c
 you. `environment` records python, torch, transformers, vegaml, numpy and both GPUs, and `notes`
 and `phases` say why a column is missing rather than different.
 
-### Where it leads
+### An earlier, item paired run
 
-The narrower claim, from an earlier item-paired run against Jev 1.13.0. These are areas where the
-0.8B leads outright; the reference leads on most others, particularly reranking and multi-step
-reasoning.
+A different and narrower measurement, against Jev 1.13.0, from before the menu above existed. Kept
+because the phishing result is not on the menu and is the sharpest of them.
 
 ![Where this model beats a hosted reference](assets/vega_wins.png)
 
@@ -386,10 +439,8 @@ reasoning.
 
 2.5× the phishing caught at McNemar p = 3e-11, and 2.1× faster with nothing leaving the machine.
 
-On the menu above, the 4B leads the hosted model on 12 of the 43 public tasks, the 0.8B on 4. Most
-of those margins are two or three rows wide, and two of them sit below the task's own majority
-class, so the one that survives a careful look is prompt injection detection: 0.855 against 0.764,
-against a 0.582 majority class.
+`enron_spam`, `ag_news` and `temporal_numeric` are on the menu above as well, and they came out the
+same way there.
 
 ### Images
 

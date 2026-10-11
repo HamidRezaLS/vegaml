@@ -143,7 +143,7 @@ rather than a single gold answer, Vega is far closer to it. Jev also returns a b
 `max_tokens_exceeded` on 3 of 1075 rows, which is where its 0.997 coverage comes from.
 
 **The twelve tasks the 4B wins are mostly short social and safety text, and almost none of
-them hold up.** Nine of the twelve are worth three rows or fewer, and the two widest both
+them hold up.** Eight of the twelve are worth three rows or fewer, and the two widest both
 lose to their own majority class. `prompt_injections` is the only one left standing.
 "Where Vega surpassed Jev" below works through all twelve with row counts. `engine_no_adapter`
 matches `engine` on all of them except `clinc150_oos`, which falls from 0.900 to 0.517, so the
@@ -221,7 +221,7 @@ The per row data was not kept, so the true p is higher than this for every line.
 | clinc150_oos | 60 | 4B | 0.200 | 0.900 | 0.883 | +0.017 | 1 | +42 | 1.000 |
 | toxic_chat_toxicity | 60 | 4B | 0.967 | 1.000 | 0.983 | +0.017 | 1 | +2 | 1.000 |
 
-Reading down the `rows+` column: nine of the twelve wins are three rows or fewer, so no
+Reading down the `rows+` column: eight of the twelve wins are three rows or fewer, so no
 pairing of the data could make them significant. The two that could are the two with a
 baseline problem. `unfair_tos` is the widest win in the run at 12 rows, but Vega sits only 2
 rows above its own majority class while Jev sits 10 rows below it, so the finding is that Jev
