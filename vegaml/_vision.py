@@ -117,7 +117,7 @@ class VegaVision:
 
     @torch.no_grad()
     def _decide(self, state_text, questions, image=None, alpha="0.1", risk=None):
-        from ._common import QTYPES, route_adapters, softmax_np, thermal_features, thermal_tau
+        from ._common import QTYPES, route_per_adapter, softmax_np, thermal_features, thermal_tau
         t0 = time.time()
         qids = list(questions)
         if not qids:
@@ -145,7 +145,11 @@ class VegaVision:
         phys = thermal_features(out, mask, eng.max_steps).cpu().numpy()
         qt = qtype.cpu().numpy()
         gates = out["gates"].float().cpu().numpy() if out.get("gates") is not None else None
-        route = route_adapters(gates, self.d.adapters[0]["threshold"] if self.d.adapters else 0.5)
+        # Each adapter carries its own gate threshold, so the threshold is per adapter rather than
+        # one global value. Adapter 0's setting must not decide adapter 1's routing: that sends a
+        # question through the wrong calibration, and every probability for it is then miscalibrated.
+        thresholds = [a["threshold"] for a in self.d.adapters] if self.d.adapters else None
+        route = route_per_adapter(gates, thresholds)
         route = np.full(B, -1) if route is None else route
         P = np.zeros_like(logits, dtype=np.float64)
         for rt in np.unique(route):

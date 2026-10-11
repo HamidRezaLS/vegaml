@@ -939,6 +939,34 @@ def route_adapters(gates: Optional[np.ndarray], threshold: float = 0.5) -> np.nd
     return np.where(g.max(1) >= threshold, g.argmax(1), -1)
 
 
+def route_per_adapter(gates: Optional[np.ndarray], thresholds) -> np.ndarray:
+    """Like :func:`route_adapters`, but each adapter is judged against its OWN threshold.
+
+    ``route_adapters`` takes a single threshold for every adapter, which silently applies adapter 0's
+    gate setting to adapters 1, 2, ... Each adapter's metadata carries its own ``gate_threshold``
+    (read in ``_api.Vega.add_adapter``, stored as ``adapters[i]["threshold"]``), so a checkpoint
+    that ships differing values then routes some questions to the wrong calibration -- and every
+    probability for those questions is miscalibrated while still looking like a normal answer.
+
+    A column beyond ``thresholds`` (a gate for an adapter this checkpoint never loaded) falls back to
+    0.5 rather than to 0, which would shut it entirely. Ties go to the lowest index, so routing is
+    deterministic when two adapters both qualify.
+    """
+    if gates is None:
+        return None
+    g = np.asarray(gates, dtype=np.float64)
+    if g.ndim != 2:
+        return None
+    thr = np.full(g.shape[1], 0.5, dtype=np.float64)
+    if thresholds is not None and len(thresholds):
+        t = np.asarray(thresholds, dtype=np.float64)
+        thr[:min(len(t), g.shape[1])] = t[:g.shape[1]]
+    qualifies = g >= thr[None, :]
+    any_ok = qualifies.any(1)
+    best = np.where(qualifies, g, -np.inf).argmax(1)
+    return np.where(any_ok, best, -1)
+
+
 def thermal_features(out: Dict, opt_mask: torch.Tensor, max_steps: int) -> torch.Tensor:
     """Per-item physical state used by thermal calibration: residual kinetic energy, distance to the nearest well
     bottom, fraction of the step budget used, and log number of options."""

@@ -27,7 +27,7 @@ import torch
 from ._common import (
     normalise_conformal,
     QTYPES, VegaEngine, Perception, build_prompt, load_adapter, option_texts, prose_state,
-    route_adapters, serialize_state, softmax_np, thermal_features, thermal_tau,
+    route_adapters, route_per_adapter, serialize_state, softmax_np, thermal_features, thermal_tau,
 )
 
 
@@ -132,6 +132,18 @@ class Vega:
             return {"theta": self.theta, "conformal": self.conformal, "abstain": self.abstain, "unbound": self.unbound}
         return self.adapters[r]["cal"]
 
+    def _route(self, gates):
+        """Which calibration each question uses, judged against each adapter's OWN gate threshold.
+
+        A single threshold for all adapters silently applies adapter 0's setting to the others, so a
+        checkpoint that ships per-adapter gate_thresholds routes to the wrong calibration.
+        """
+        if gates is None:
+            return None
+        if not self.adapters:
+            return route_adapters(gates, 0.5)
+        return route_per_adapter(gates, [a["threshold"] for a in self.adapters])
+
     @staticmethod
     def _internal(qdef):
         t = qdef["type"]
@@ -177,7 +189,7 @@ class Vega:
         phys = thermal_features(out, mask, self.engine.max_steps).cpu().numpy()
         qt = qtype.cpu().numpy()
         gates = out["gates"].float().cpu().numpy() if out.get("gates") is not None else None
-        route = route_adapters(gates, self.adapters[0]["threshold"] if self.adapters else 0.5)
+        route = self._route(gates)
         route = np.full(B, -1) if route is None else route
         P = np.zeros_like(logits, dtype=np.float64)
         for rt in np.unique(route):   # each question calibrated by the adapter it went through (or the base)
