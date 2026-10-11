@@ -428,19 +428,12 @@ the lowest-energy well, and the residual kinetic energy at the end is what sets 
 is the part that makes the probabilities mean something. CWMI reports accuracy; it has no calibration,
 conformal or abstain machinery, which is most of what is claimed here.
 
-## Download counts
-
-The repository carries a `config.json` so the Hub can count downloads; it counts nothing for a
-repository with no file it recognises. It holds no settings, nothing reads it, and the runtime
-still reads `vega_config.json`. `fetch` asks for it from the repository root on every load,
-including the 4B, which otherwise reads only from its own subfolder: a counter file that is never
-requested counts nothing.
-
 ## Security
 
 A checkpoint is data from a third party, so the inference code lives in this package and is reviewed
-with it. `vegaml.load()` downloads **only** `vega_config.json`, `engine.safetensors` and the adapter
-files; nothing fetched at runtime is imported or executed, and weights load through safetensors, never
+with it. `vegaml.load()` downloads **only** `vega_config.json`, `engine.safetensors`, the adapter
+files and `config.json`, which exists so the Hub can count downloads and which nothing reads;
+nothing fetched at runtime is imported or executed, and weights load through safetensors, never
 pickle. Tests enforce that allow-list, and CI fails on any `pickle`, `torch.load`, `eval`, `exec`,
 `subprocess` or `sys.path` insertion reaching the shipped package.
 
