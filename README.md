@@ -89,6 +89,13 @@ identical prompt and the head is fitted on noise:
 examples = [(state, labels, {"intent": dict(question, instructions="...this row's text...")}), ...]
 ```
 
+**Changed in 0.8.0.** The image path works. `decide_image` reached for a module that ships only in
+the training tree, so it raised `ModuleNotFoundError` in every installed copy; the `vision` extra now
+also carries `torchvision`, which the backbone's processor loads on the way in. Each adapter is gated
+on its own threshold rather than on the first adapter's. A head at or below chance is no longer
+served, `fit` takes a per-example question, and the TTT readout names what went wrong instead of
+raising `max() arg is an empty sequence`. `label_ids` and `MODES` are exported.
+
 **Changed in 0.7.0.** `mode="auto"` is the new default. `"engine"` is unchanged and still what every
 published figure measures, so pass it explicitly when reproducing them.
 

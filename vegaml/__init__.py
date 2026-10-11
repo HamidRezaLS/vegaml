@@ -38,7 +38,7 @@ from .ttt import TTTHead
 # MODES and label_ids are imported by name from outside this package (the bench adapter, the tests),
 # so they belong in __all__ rather than merely being present as module attributes.
 __all__ = ["load", "Vega", "TTTHead", "fetch", "default_token", "label_ids", "MODES", "__version__"]
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 
 MODES = ("auto", "engine", "ttt", "both")
 
