@@ -408,6 +408,15 @@ Then *Save Version -> Save & Run All (Commit)*. The full menu is about four and 
 `CFG["models"] = ["0.8b"]` to halve it. The run saves after every task, so one that hits the wall
 still leaves everything it finished, and `CFG["resume_from"]` picks it up from that JSON.
 
+The versions are pinned, not floored. The table above was measured under `vegaml` 0.8.0,
+`transformers` 5.19.0, torch 2.11.0+cu128, numpy 2.1.3 and python 3.13.15, and the notebook
+installs `vegaml` and `transformers` at exactly those versions: tokenizer and generation defaults
+move between minor releases, and version skew is half of why a benchmark table does not reproduce.
+Torch, numpy and python come from the Kaggle image and are checked instead of installed, since
+pinning torch reinstalls CUDA against a driver it was not built for. Every gap from that list is
+written into `environment.version_skew`, so a run that misses the table says which versions it
+missed it under.
+
 [`bench/RESULTS.md`](bench/RESULTS.md) is the long form of that run: per task accuracy for all 43
 tasks, both backbones, the abstention and conformal numbers, and an honest accounting of every
 place the local model came out ahead.
@@ -416,8 +425,10 @@ To check the table against your own run, compare `summary.public_macro`, `result
 and `results.decisionbench.all` in the JSON it writes. The keys are the same strings used above.
 The row sample is seeded by `CFG["seed"]`, so local readouts at the same seed and the same library
 versions reproduce to the row; the hosted column will not, because its weights can change under
-you. `environment` records python, torch, transformers, vegaml, numpy and both GPUs, and `notes`
-and `phases` say why a column is missing rather than different.
+you. `environment` records python, torch, transformers, datasets, huggingface_hub, vegaml, numpy
+and both GPUs, `environment.version_skew` names anything that came out at a different version from
+the one these figures were measured under, and `notes` and `phases` say why a column is missing
+rather than different.
 
 ### An earlier, item paired run
 

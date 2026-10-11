@@ -1,8 +1,4 @@
-# Vega benchmark results, 2026-10-11
-
-The long form of the table at the top of the repository README. The run is
-[`../notebooks/vega_benchmark_2xT4.ipynb`](../notebooks/vega_benchmark_2xT4.ipynb) and the figure
-is drawn from the same JSON by [`make_table_png.py`](make_table_png.py).
+# Vega benchmark results
 
 One run of the whole menu, finished 2026-10-11 on two Tesla T4s in a Kaggle session.
 43 public tasks at up to 60 evaluation rows each (45 to 60, 33 of the 43 at a full 60),
@@ -10,7 +6,10 @@ One run of the whole menu, finished 2026-10-11 on two Tesla T4s in a Kaggle sess
 Totals: about 5 h 40 m of GPU time across three sittings, 3 h 55 m of which ended in a
 host memory kill, 1502 readouts carried forward into the last sitting, which measured the
 4B backbone in 99.4 minutes.
-Environment: python 3.13.15, torch 2.11.0+cu128, transformers 5.19.0, vegaml 0.8.0.
+Environment: python 3.13.15, torch 2.11.0+cu128, transformers 5.19.0, vegaml 0.8.0,
+numpy 2.1.3. The notebook installs `vegaml` and `transformers` at exactly those versions
+and records any gap in the rest under `environment.version_skew`, since version skew is
+half of why a table like this does not reproduce.
 
 Skill is chance corrected, `(accuracy - chance) / (1 - chance)`, so a 77 label task and a
 two label task can sit in the same column. Jev is the hosted `jev-latest` endpoint, called
@@ -267,8 +266,7 @@ size. That is the claim the data supports.
   upstream `mc1_targets` always puts the true answer first and this task does not shuffle its
   options, so gold is "A" on all 50 rows and always answering A scores 1.000 against 0.940 for
   Jev and 0.620 for Vega 4B. That column measures position bias, not truthfulness, and it
-  should be fixed by routing the task through the same `_shuffled` helper `sciq` uses in
-  the notebook's `bench_tasks.py`.
+  should be fixed by routing the task through the same `_shuffled` helper `sciq` uses.
   `toxic_chat_jailbreak` drew 60 rows that are all the negative class, so a constant answer
   scores 1.000 there too, and `toxic_chat_toxicity` is at 0.967. Read all three as ceilings.
 - `tweet_stance_abortion` has a 0.673 majority class that beats both systems, so the
