@@ -12,7 +12,13 @@ probability, a conformal answer set and an explicit abstain flag.
 **800M or 4B parameters · 73,728-token context · images · runs on your own hardware.** No text is
 generated anywhere in the path.
 
-![Where this model beats a hosted reference](assets/vega_wins.png)
+![Vega 0.8B and 4B against a hosted reference over 3,841 decisions](assets/vega_benchmark_table.png)
+
+<sub>One run, 2026-10-11, two Tesla T4s, 43 public tasks plus JevBench and DecisionBench. Every
+cell is read out of the run's own JSON by
+[`bench/make_table_png.py`](bench/make_table_png.py), and the run is
+[`notebooks/vega_benchmark_2xT4.ipynb`](notebooks/vega_benchmark_2xT4.ipynb), which you can run
+yourself on a free Kaggle session. [How to check it](#running-it-yourself).</sub>
 
 ```bash
 pip install vegaml
@@ -150,7 +156,7 @@ name; the loader remaps them, so an older checkpoint still loads with its predic
 ## Two sizes
 
 Both live in the same checkpoint repository and take the same code path. `load()` with no argument
-gives you the 0.8B, which is the default and the model every Jev comparison on this page measures.
+gives you the 0.8B, which is the default. The table at the top of this page measures both.
 
 | | 0.8B | 4B |
 |---|---|---|
@@ -169,6 +175,12 @@ of the same harness. Per workflow with the adapter, the 4B leads on five of six:
 
 So the 4B is the better model and the 0.8B is the default anyway, because 22 ms against 28 ms and 57
 MB against 124 MB decides more deployments than four points of accuracy does.
+
+On the wider menu at the top of this page the gap is larger than four points: 0.717 accuracy
+against 0.556, and 0.594 chance-corrected skill against 0.388. The cost of closing it is the
+backbone, not the engine. `Qwen/Qwen3.5-4B` is 9.34 GB against 1.77 GB for the 0.8B, it takes 61
+seconds to load against 27, and it answers in 106 ms against 74. Pick the 4B when the machine has
+the room and the task has more than a handful of labels; pick the 0.8B when it does not.
 
 ```python
 vegaml.load()                  # 0.8B
@@ -279,12 +291,87 @@ items. Those numbers are a smoke test, not a result. The full 16k run on Kaggle 
 
 ## Benchmarks
 
-The figure at the top of this page is the table below. Item-paired against a live Jev 1.13.0 over
-identical items, no tuning on the evaluation data. These are the areas where this model leads; the
-reference leads on most others, particularly reranking and multi-step reasoning.
-
 Every figure here is `mode="engine"`, zero-shot, with no head fitted. That is also what `"auto"`
 gives you until you call `fit`, so these numbers are what the default produces out of the box.
+Nothing is tuned on evaluation data, and the hosted reference is called live over the same rows.
+
+### The whole menu
+
+The figure at the top of this page, as text. 43 public tasks at up to 60 rows each, the JevBench
+public tiers, and DecisionBench: 3,841 decisions per system, one run, 2026-10-11.
+
+| metric | Vega 0.8B | Vega 4B | Jev |
+| --- | ---: | ---: | ---: |
+| **Public menu, 43 tasks, macro average** | | | |
+| accuracy | 0.556 | 0.717 | **0.836** |
+| skill, chance corrected | 0.388 | 0.594 | **0.755** |
+| macro F1 | 0.486 | 0.649 | **0.796** |
+| expected calibration error | 0.151 | 0.148 | **0.115** |
+| negative log likelihood | 1.099 | **0.768** | 0.878 |
+| area under the risk coverage curve | 0.362 | 0.169 | **0.077** |
+| latency per decision, p50 ms | **74** | 106 | 162 |
+| **JevBench, 231 items** | | | |
+| accuracy | 0.545 | 0.662 | **0.866** |
+| accuracy, hard tier, 111 items | 0.414 | 0.513 | **0.730** |
+| paraphrase consistency, 36 groups | 0.694 | 0.722 | **0.972** |
+| expected calibration error | 0.178 | 0.169 | **0.067** |
+| **DecisionBench, 1,075 items** | | | |
+| accuracy | 0.509 | 0.633 | **0.752** |
+| expected calibration error | 0.103 | **0.098** | 0.122 |
+| negative log likelihood | 1.628 | **1.420** | 3.196 |
+| KL to the gold distribution, 10 rows | 1.012 | **0.854** | 6.099 |
+| coverage, rows answered | **1.000** | **1.000** | 0.997 |
+| latency per decision, p50 ms | **85** | 245 | 163 |
+
+**Read it this way.** The hosted model is more accurate across the board, and the gap is widest
+where wording changes: it answers a paraphrase the same way 0.972 of the time against 0.722 for
+the 4B. What the local model wins is honest probabilities. On DecisionBench its calibration error,
+its likelihood and its distance to the gold distribution are all better, because the hosted model
+is confident at 0.874 on rows it gets right 0.752 of the time. It also answers every row, and the
+0.8B answers in 74 ms on a T4 with nothing leaving the machine.
+
+Both backbones were measured on the same rows with no engine in the path. `base-4b/generate`
+reaches 0.700 on the menu and 0.634 on DecisionBench, which is within noise of the 4B engine, so
+the engine's contribution on this menu is coverage, probabilities and latency rather than raw
+accuracy. On the wide label spaces it is accuracy too: 0.900 against 0.100 on a 151-intent task,
+0.650 against 0.183 on 100-way contract clauses.
+
+### Running it yourself
+
+[`notebooks/vega_benchmark_2xT4.ipynb`](notebooks/vega_benchmark_2xT4.ipynb) is the run that
+produced the table. It is self-contained: it writes out its own seven harness modules, so the only
+things it needs are a Kaggle session with **GPU T4 x2** and **Internet on**, and two secrets under
+*Add-ons -> Secrets*:
+
+| secret | what it is for | without it |
+|---|---|---|
+| `JEV_API` | the key for the hosted reference at `api.typesafe.ai`, read with `UserSecretsClient().get_secret("JEV_API")` and never printed | the `jev/*` column is skipped with a printed reason, everything local still runs |
+| `HF_TOKEN` | a Hugging Face read token for the checkpoints and the datasets | the public checkpoints still load anonymously, a few datasets may rate limit |
+
+Then *Save Version -> Save & Run All (Commit)*. The full menu is about four and a half hours on
+2x T4, roughly a sixth of a weekly Kaggle GPU quota, and it downloads 11 GB of backbones. Set
+`CFG["quick"] = True` for a five minute pass that exercises every code path, or
+`CFG["models"] = ["0.8b"]` to halve it. The run saves after every task, so one that hits the wall
+still leaves everything it finished, and `CFG["resume_from"]` picks it up from that JSON.
+
+[`bench/RESULTS.md`](bench/RESULTS.md) is the long form of that run: per task accuracy for all 43
+tasks, both backbones, the abstention and conformal numbers, and an honest accounting of every
+place the local model came out ahead.
+
+To check the table against your own run, compare `summary.public_macro`, `results.jevbench.all`
+and `results.decisionbench.all` in the JSON it writes. The keys are the same strings used above.
+The row sample is seeded by `CFG["seed"]`, so local readouts at the same seed and the same library
+versions reproduce to the row; the hosted column will not, because its weights can change under
+you. `environment` records python, torch, transformers, vegaml, numpy and both GPUs, and `notes`
+and `phases` say why a column is missing rather than different.
+
+### Where it leads
+
+The narrower claim, from an earlier item-paired run against Jev 1.13.0. These are areas where the
+0.8B leads outright; the reference leads on most others, particularly reranking and multi-step
+reasoning.
+
+![Where this model beats a hosted reference](assets/vega_wins.png)
 
 | task | this model | Jev 1.13.0 |
 |---|---|---|
@@ -298,6 +385,11 @@ gives you until you call `fit`, so these numbers are what the default produces o
 | Median latency per decision | **267 ms** (T4 fp16) · 280 ms (Apple M, fp32) | 591 ms (hosted) |
 
 2.5× the phishing caught at McNemar p = 3e-11, and 2.1× faster with nothing leaving the machine.
+
+On the menu above, the 4B leads the hosted model on 12 of the 43 public tasks, the 0.8B on 4. Most
+of those margins are two or three rows wide, and two of them sit below the task's own majority
+class, so the one that survives a careful look is prompt injection detection: 0.855 against 0.764,
+against a 0.582 majority class.
 
 ### Images
 
