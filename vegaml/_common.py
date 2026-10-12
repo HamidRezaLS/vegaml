@@ -304,6 +304,28 @@ def resolve_layers(spec, n_layers):
     return sorted(set(out))
 
 
+def resolve_device(device=None):
+    """Explicit devices win; otherwise prefer CUDA, then Apple MPS, then CPU."""
+    if device:
+        dev = torch.device(device)
+        if dev.type == "mps" and not torch.backends.mps.is_available():
+            raise RuntimeError("MPS is not available in this PyTorch build or on this machine; "
+                               "use device=\"cpu\" instead")
+        return dev
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
+def backbone_dtype(device):
+    """Keep CPU/MPS in float32; preserve the CUDA capability-based precision policy."""
+    if device.type == "cuda":
+        return torch.bfloat16 if torch.cuda.get_device_capability(device)[0] >= 8 else torch.float16
+    return torch.float32
+
+
 # ----------------------------------------------------------------------------- frozen perception
 class Perception:
     """Frozen causal LM, cut off after the deepest layer we read. Returns pooled span features, never trained."""
@@ -311,8 +333,7 @@ class Perception:
     def __init__(self, path, device, feature_layers, option_layers):
         from transformers import AutoModelForCausalLM, AutoTokenizer
         self.tok = AutoTokenizer.from_pretrained(path)
-        dtype = torch.bfloat16 if (device.type == "cuda" and torch.cuda.get_device_capability(device)[0] >= 8) else (
-            torch.float16 if device.type == "cuda" else torch.float32)
+        dtype = backbone_dtype(device)
         import transformers
         major, minor = (int(x) for x in transformers.__version__.split(".")[:2])
         # `dtype=` replaced `torch_dtype=` in 4.56; older versions would silently ignore it and load fp32
