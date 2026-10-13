@@ -30,6 +30,7 @@ fitted on too few examples to cross-validate is left to the engine.
 """
 from __future__ import annotations
 
+import time
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 from .hub import default_token, fetch
@@ -56,6 +57,7 @@ class Vega:
         self.mode = mode
         self.heads: Dict[str, Tuple[TTTHead, Optional[float]]] = {}
         self._vision = None      # the vision tower, loaded on first decide_image()
+        self._tokens_read = 0    # prompt tokens features() has read since decide() last reset it
 
     # ------------------------------------------------------------------ loading
     @classmethod
@@ -99,6 +101,9 @@ class Vega:
         with torch.no_grad():
             f, _ = v.perc.pooled([{"ids": np.asarray(ids, dtype=np.int32), "spans": spans}],
                                  prefix_min=v.cfg.get("prefix_min_tokens", 4096))
+        # Counted here rather than returned, so the return value stays a bare vector for callers.
+        # One counter per instance: concurrent decide() calls on one Vega would mix their counts.
+        self._tokens_read += len(ids)
         return f[0].float().cpu().numpy().ravel()
 
     # ------------------------------------------------------------------ fitting
@@ -187,25 +192,36 @@ class Vega:
         the engine's. With ``"ttt"`` every answer comes from a fitted head, and a question without
         one is an error rather than a silent fall back. With ``"both"`` the result carries
         ``answers`` (engine) and ``ttt`` side by side.
+
+        Every mode returns ``latency_ms``, ``n_tokens`` and ``views``. A head reads the frozen
+        backbone too, one pass per question, so its time and tokens are counted with the engine's.
         """
         mode = mode or self.mode
         if mode not in MODES:
             raise ValueError("mode must be one of %s, got %r" % (", ".join(MODES), mode))
+        started = time.perf_counter()
+        self._tokens_read = 0
         if mode == "ttt":
             missing = [q for q in questions if q not in self.heads]
             if missing:
                 raise RuntimeError(
                     "no TTT head for %s. Call fit(examples, questions) first, or use "
                     "mode='engine'." % ", ".join(sorted(missing)))
-            return {"mode": "ttt", "answers": self._ttt_answers(state, questions)}
-        if mode == "auto":
-            return self._auto(state, questions, alpha=alpha, views=views)
-        out = self.engine.decide(state, questions, alpha=alpha, views=views)
-        if mode == "engine":
-            out["mode"] = "engine"
-            return out
-        out["mode"] = "both"
-        out["ttt"] = self._ttt_answers(state, questions, skip_missing=True)
+            out = {"mode": "ttt", "answers": self._ttt_answers(state, questions)}
+        elif mode == "auto":
+            out = self._auto(state, questions, alpha=alpha, views=views)
+        else:
+            out = self.engine.decide(state, questions, alpha=alpha, views=views)
+            if mode == "engine":
+                out["mode"] = "engine"
+                return out
+            out["mode"] = "both"
+            out["ttt"] = self._ttt_answers(state, questions, skip_missing=True)
+        # These used to come only from engine.decide(), so a request answered wholly by heads had
+        # none of them, and a mixed one left the heads' own reads out of both numbers.
+        out["latency_ms"] = round(1000 * (time.perf_counter() - started), 1)
+        out["n_tokens"] = out.get("n_tokens", 0) + self._tokens_read
+        out.setdefault("views", 1)          # a head reads the state once
         return out
 
     def _auto(self, state, questions: Mapping, alpha: str, views: int) -> Dict:

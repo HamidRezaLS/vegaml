@@ -120,6 +120,40 @@ def test_both_mode_skips_questions_with_no_head_rather_than_failing():
     assert set(out["ttt"]) == {"q"}
 
 
+@pytest.mark.parametrize("mode", ["auto", "ttt", "both"])
+def test_every_mode_reports_latency_tokens_and_views_when_heads_answer(mode):
+    """These keys used to come only from engine.decide(), so with every question on a head auto
+    and ttt returned neither of them and out["latency_ms"] was a KeyError."""
+    out = _vega_with_head(mode).decide("s", QS)
+    assert out["latency_ms"] >= 0
+    assert out["n_tokens"] >= 0
+    assert out["views"] == 1
+
+
+def test_head_reads_are_counted_alongside_the_engines():
+    """Each head question is its own pass through the backbone in features(), so its tokens belong
+    in n_tokens as much as the engine's do."""
+    import torch
+
+    from vegaml._api import Vega as Engine
+
+    v = _vega_with_head("auto")
+    del v.features                          # the real one, reading through the fake backbone below
+    v.engine.cfg = {"max_len": 4096, "opt_max_tokens": 32}
+    v.engine._internal = Engine._internal
+    v.engine.perc = types.SimpleNamespace(
+        tok=lambda s, add_special_tokens=False: {"input_ids": list(range(len(s)))},
+        pooled=lambda items, prefix_min: (torch.zeros(len(items), 16), None))
+    engine_decide = v.engine.decide
+    v.engine.decide = lambda *a, **kw: dict(engine_decide(*a, **kw), n_tokens=100)
+
+    alone = v.decide("some state", QS)
+    assert alone["n_tokens"] > 0, "the head's read happened and is counted"
+    mixed = v.decide("some state", dict(QS, other={"type": "choice", "instructions": "which?",
+                                                   "criteria": {"a": "", "c": ""}}))
+    assert mixed["n_tokens"] == 100 + alone["n_tokens"], "engine tokens plus the head's own read"
+
+
 def test_fit_reports_examples_cv_and_the_chance_line(monkeypatch):
     v = Vega(_FakeEngine())
     rng = np.random.default_rng(2)
