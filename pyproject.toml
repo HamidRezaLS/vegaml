@@ -40,6 +40,8 @@ vision = ["pillow>=10.0", "torchvision"]
 dev = ["pytest>=8.0", "ruff>=0.6", 'tomli>=2.0; python_version < "3.11"']
 # `pip install vegaml[serve]` adds the HTTP server (vegaml.serve / the vegaml-serve command).
 serve = ["fastapi>=0.110", "uvicorn>=0.27"]
+# `pip install vegaml[mlx]` runs the decision engine on Apple silicon without torch (vegaml.mlx_engine).
+mlx = ['mlx>=0.30; platform_machine == "arm64" and sys_platform == "darwin"']
 
 [project.scripts]
 vegaml = "vegaml.cli:main"
