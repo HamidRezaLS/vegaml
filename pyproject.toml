@@ -38,9 +38,12 @@ dependencies = [
 # extra has to carry it; leave the version open and let the resolver match the installed torch.
 vision = ["pillow>=10.0", "torchvision"]
 dev = ["pytest>=8.0", "ruff>=0.6", 'tomli>=2.0; python_version < "3.11"']
+# `pip install vegaml[serve]` adds the HTTP server (vegaml.serve / the vegaml-serve command).
+serve = ["fastapi>=0.110", "uvicorn>=0.27"]
 
 [project.scripts]
 vegaml = "vegaml.cli:main"
+vegaml-serve = "vegaml.serve:main"
 
 [project.urls]
 Homepage = "https://github.com/NandhaKishorM/vegaml"
