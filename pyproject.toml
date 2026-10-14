@@ -42,6 +42,9 @@ dev = ["pytest>=8.0", "ruff>=0.6", 'tomli>=2.0; python_version < "3.11"']
 serve = ["fastapi>=0.110", "uvicorn>=0.27"]
 # `pip install vegaml[mlx]` runs the decision engine on Apple silicon without torch (vegaml.mlx_engine).
 mlx = ['mlx>=0.30; platform_machine == "arm64" and sys_platform == "darwin"']
+# `pip install vegaml[onnx]` adds export (vegaml.onnx_export) and the onnxruntime path; onnxscript is
+# what torch.onnx.export itself needs at trace time.
+onnx = ["onnx>=1.16", "onnxruntime>=1.19", "onnxscript>=0.1"]
 
 [project.scripts]
 vegaml = "vegaml.cli:main"
