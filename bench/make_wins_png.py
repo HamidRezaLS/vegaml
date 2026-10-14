@@ -11,6 +11,7 @@ import os
 import sys
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -131,7 +132,7 @@ def main(path, out):
              fontsize=9.4, color=INK2, va="center")
 
     for x, head, sub in zip(x_cols, ("Vega 0.8B", "Vega 4B", "Jev"),
-                            ("local, 0.8B", "local, 4B", "hosted, jev-latest")):
+                            ("local, 0.8B", "local, 4B", "hosted, jev-latest"), strict=True):
         ax.text(x, top, head, fontsize=11.6, fontweight="bold", ha="center", va="center",
                 color=ORANGE if head == "Jev" else BLUE)
         ax.text(x, top - 0.23, sub, fontsize=8.0, ha="center", va="center", color=INK3)
@@ -149,7 +150,7 @@ def main(path, out):
             ax.text(x_label, y, label, fontsize=10.2, va="center", color=INK)
             vals = [v for v in (v08, v4, j) if v is not None]
             best = (min if direction == "lo" else max)(vals) if vals else None
-            for x, v in zip(x_cols, (v08, v4, j)):
+            for x, v in zip(x_cols, (v08, v4, j), strict=True):
                 if v is None:
                     ax.text(x, y, "not run", fontsize=10.0, ha="center", va="center", color=INK3)
                     continue

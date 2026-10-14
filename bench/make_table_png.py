@@ -11,6 +11,7 @@ import os
 import sys
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
@@ -116,7 +117,7 @@ def main(path, out):
              "The arrow says which way wins.",
              fontsize=9.4, color=INK2, va="center")
 
-    for x, (_, head, sub) in zip(x_cols, COLS):
+    for x, (_, head, sub) in zip(x_cols, COLS, strict=True):
         colour = ORANGE if head == "Jev" else BLUE
         ax.text(x, top, head, fontsize=11.6, fontweight="bold", ha="center",
                 va="center", color=colour)
@@ -136,7 +137,7 @@ def main(path, out):
             continue
         y -= 0.43
         ax.text(x_label, y, label, fontsize=10.2, va="center", color=INK)
-        for x, (text, win) in zip(x_cols, cells):
+        for x, (text, win) in zip(x_cols, cells, strict=True):
             colour = INK3 if text == "not run" else (
                 (ORANGE if x == x_cols[2] else BLUE) if win else INK2)
             ax.text(x, y, text, fontsize=10.6, ha="center", va="center", color=colour,
