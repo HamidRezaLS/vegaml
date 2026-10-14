@@ -45,10 +45,13 @@ mlx = ['mlx>=0.30; platform_machine == "arm64" and sys_platform == "darwin"']
 # `pip install vegaml[onnx]` adds export (vegaml.onnx_export) and the onnxruntime path; onnxscript is
 # what torch.onnx.export itself needs at trace time.
 onnx = ["onnx>=1.16", "onnxruntime>=1.19", "onnxscript>=0.1"]
+# `pip install vegaml[mcp]` adds the MCP stdio server (vegaml.mcp_server / vegaml-mcp-server).
+mcp = ["mcp>=2.2"]
 
 [project.scripts]
 vegaml = "vegaml.cli:main"
 vegaml-serve = "vegaml.serve:main"
+vegaml-mcp-server = "vegaml.mcp_server:main"
 
 [project.urls]
 Homepage = "https://github.com/NandhaKishorM/vegaml"
