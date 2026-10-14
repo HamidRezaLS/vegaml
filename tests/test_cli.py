@@ -49,21 +49,22 @@ def test_typed_flags_become_questions(fake, capsys):
     assert _run(["the state",
                  "--boolean", "churn=Does the customer threaten to leave?",
                  "--choice", "team=Which team?=billing, technical,sales",
-                 "--score", "stars=How positive?=3"]) == 0
+                 "--score", "stars=How positive?=bad,ok,good"]) == 0
     call = fake.calls[0]
     assert call["state"] == "the state"
     assert call["questions"]["churn"] == {"type": "boolean",
                                           "instructions": "Does the customer threaten to leave?"}
     assert call["questions"]["team"] == {"type": "choice", "instructions": "Which team?",
                                          "criteria": ["billing", "technical", "sales"]}
-    assert call["questions"]["stars"] == {"type": "score", "instructions": "How positive?", "levels": 3}
+    assert call["questions"]["stars"] == {"type": "score", "instructions": "How positive?",
+                                          "criteria": ["bad", "ok", "good"]}
     out = json.loads(capsys.readouterr().out)
     assert set(out["answers"]) == {"churn", "team", "stars"}
 
 
-def test_score_defaults_to_five_levels(fake):
-    _run(["s", "--score", "stars=How positive?"])
-    assert fake.calls[0]["questions"]["stars"]["levels"] == 5
+def test_score_without_levels_is_refused(fake):
+    with pytest.raises(SystemExit, match="ordered levels"):
+        _run(["s", "--score", "stars=How positive?"])
 
 
 def test_questions_json_inline_and_from_file(fake, tmp_path):
@@ -132,9 +133,9 @@ def test_choice_without_options_is_refused(fake):
         _run(["s", "--choice", "team=Which team?"])
 
 
-def test_score_with_bad_levels_is_refused(fake):
-    with pytest.raises(SystemExit, match="integer level count"):
-        _run(["s", "--score", "stars=How positive?=lots"])
+def test_score_with_one_level_is_refused(fake):
+    with pytest.raises(SystemExit, match="ordered levels"):
+        _run(["s", "--score", "stars=How positive?=only"])
 
 
 def test_pretty_prints_indented_json(fake, capsys):

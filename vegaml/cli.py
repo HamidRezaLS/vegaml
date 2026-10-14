@@ -28,7 +28,7 @@ def _parse_typed(specs, qtype: str, questions: Dict[str, Dict]) -> None:
     for spec in specs or []:
         parts = spec.split("=", 2)
         if len(parts) < 2 or not parts[0].strip():
-            tail = "=a,b,c" if qtype == "choice" else "=levels" if qtype == "score" else ""
+            tail = "=a,b,c" if qtype == "choice" else "=low,mid,high" if qtype == "score" else ""
             raise SystemExit("vegaml: --%s expects \"id=instructions%s\", got %r" % (qtype, tail, spec))
         qid, ins = parts[0].strip(), parts[1].strip()
         if qid in questions:
@@ -39,14 +39,11 @@ def _parse_typed(specs, qtype: str, questions: Dict[str, Dict]) -> None:
                 raise SystemExit("vegaml: --choice %r names no options; append =a,b,c" % qid)
             q["criteria"] = [o.strip() for o in parts[2].split(",") if o.strip()]
         elif qtype == "score":
-            try:
-                levels = int(parts[2]) if len(parts) > 2 else 5
-            except ValueError:
-                raise SystemExit("vegaml: --score %r wants an integer level count, got %r"
-                                 % (qid, parts[2])) from None
-            if levels < 2:
-                raise SystemExit("vegaml: --score %r needs at least 2 levels" % qid)
-            q["levels"] = levels
+            levels = [o.strip() for o in parts[2].split(",")] if len(parts) > 2 else []
+            levels = [o for o in levels if o]
+            if len(levels) < 2:
+                raise SystemExit("vegaml: --score %r needs its ordered levels; append =low,mid,high" % qid)
+            q["criteria"] = levels
         questions[qid] = q
 
 
@@ -110,8 +107,8 @@ def main(argv: Optional[list] = None) -> int:
                     help="a yes/no question (repeatable)")
     ap.add_argument("--choice", action="append", metavar="ID=INSTRUCTIONS=A,B,C",
                     help="a pick-one question with its options (repeatable)")
-    ap.add_argument("--score", action="append", metavar="ID=INSTRUCTIONS=LEVELS",
-                    help="a 0..LEVELS-1 rating question, 5 levels unless said (repeatable)")
+    ap.add_argument("--score", action="append", metavar="ID=INSTRUCTIONS=LOW,MID,HIGH",
+                    help="an ordered-level question; the levels are its criteria, in order (repeatable)")
     ap.add_argument("--questions", metavar="JSON|@FILE",
                     help="questions as a JSON object, inline or @file.json; combines with the flags")
     ap.add_argument("--jsonl", metavar="FILE",
