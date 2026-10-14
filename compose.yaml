@@ -1,0 +1,12 @@
+# docker compose up -> http://localhost:8000. VEGAML_MODEL="" is the 0.8B, "4b" the 4B.
+services:
+  vegaml:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      VEGAML_MODEL: ${VEGAML_MODEL:-}
+    volumes:
+      - hub-cache:/root/.cache/huggingface
+volumes:
+  hub-cache:
