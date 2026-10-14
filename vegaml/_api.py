@@ -25,7 +25,7 @@ import numpy as np
 import torch
 
 from ._common import (
-    normalise_conformal,
+    normalise_conformal, resolve_device,
     QTYPES, VegaEngine, Perception, build_prompt, load_adapter, option_texts, prose_state,
     route_adapters, route_per_adapter, serialize_state, softmax_np, thermal_features, thermal_tau,
 )
@@ -46,7 +46,7 @@ class Vega:
             self.cfg["max_len"] = int(max_len)
         self.model_dir = model_dir
         self.calibration = calibration
-        self.device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+        self.device = resolve_device(device)
         # Resolution order, most specific first. cfg["backbone"] is whatever absolute path the
         # training machine used, so it is only usable if it happens to exist here; otherwise fall
         # back to cfg["backbone_name"], the Hub id, which is what makes a downloaded checkpoint

@@ -58,6 +58,17 @@ print(out["answers"]["churn"]["abstain"])      # False -> the engine stands behi
 
 Both questions are answered from **one** read of the state.
 
+### Devices
+
+With no `device` argument, loading prefers CUDA, then Apple silicon MPS when PyTorch reports it
+available, then CPU. Override it with `vegaml.load(device="mps")` or `vegaml.load(device="cpu")`.
+An explicit MPS request raises a clear error when MPS is unavailable.
+
+The text backbone uses float32 on MPS and CPU; CUDA keeps its capability-based bf16/fp16 policy.
+The backbone and decision engine stay on the selected device. MPS is experimental: start with the
+0.8B model and short text, and verify decisions on your own Mac before relying on them. The full
+runtime uses more memory than the downloaded weights; long contexts and the 4B model need more.
+
 ### Two readouts, one set of features
 
 `mode` picks how the pooled features are turned into an answer.
