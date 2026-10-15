@@ -24,10 +24,29 @@ from typing import Dict, List, Mapping, Sequence, Tuple
 
 from . import label_ids
 
-__all__ = ["calibrate", "Calibration", "ece"]
+__all__ = ["calibrate", "Calibration", "ece", "canon_probs"]
 
 _CLAMP = 1e-6
 _GOLD = (math.sqrt(5.0) - 1.0) / 2.0
+
+
+def canon_probs(probs: Mapping, options: Sequence[str]) -> Dict[str, float]:
+    """The probabilities re-keyed onto the question's own option ids.
+
+    The engine's boolean answers key their probabilities "False"/"True" and put Python booleans
+    in the prediction set, while :func:`vegaml.label_ids` speaks "false"/"true"; scores can come
+    back keyed by int. This maps each key onto the option it names, case-insensitively, so label
+    arithmetic never depends on which spelling produced the answer. A key naming no option is a
+    :class:`ValueError`, since dropping it would silently renormalise.
+    """
+    by_fold = {o.lower(): o for o in options}
+    out: Dict[str, float] = {}
+    for k, p in probs.items():
+        o = by_fold.get(str(k).lower())
+        if o is None:
+            raise ValueError("probability key %r names no option of %s" % (k, list(options)))
+        out[o] = float(p)
+    return out
 
 
 def ece(rows: Sequence[Tuple[float, bool]], bins: int = 10) -> float:
@@ -110,7 +129,7 @@ class Calibration:
                 out["answers"][qid] = ans
                 continue
             ans = dict(ans)
-            probs = _rescale(ans["probs"], fitted["temperature"])
+            probs = _rescale(canon_probs(ans["probs"], fitted["labels"]), fitted["temperature"])
             best = max(probs, key=probs.get)
             pset = [k for k in fitted["labels"] if probs[k] >= 1.0 - fitted["qhat"]]
             ans["probs"] = {k: round(p, 6) for k, p in probs.items()}
@@ -171,7 +190,7 @@ def calibrate(model, examples: Sequence[Tuple], questions: Mapping,
             asked = (example[2] if len(example) > 2 else {}).get(qid, q)
             answer = model.decide(state, {qid: asked}, mode="engine",
                                   views=views)["answers"][qid]
-            rows.append((answer["probs"], label))
+            rows.append((canon_probs(answer["probs"], labels), label))
         if bad:
             report[qid] = {"calibrated": False, "examples": len(rows),
                            "reason": ("label(s) %s in the examples are not options of this "

@@ -119,3 +119,18 @@ def test_the_command_refuses_bad_input_by_name(tmp_path, monkeypatch):
         main([str(ok), "--questions", "{bad"])
     with pytest.raises(SystemExit, match="non-empty object"):
         main([str(ok), "--questions", "{}"])
+
+
+def test_the_engines_boolean_spelling_counts_as_covered():
+    class EngineSpelled(_Scripted):
+        def decide(self, state, questions, mode=None, alpha="0.1", views=1):
+            out = super().decide(state, questions, mode=mode, alpha=alpha, views=views)
+            for qid, q in questions.items():
+                if q["type"] == "boolean":
+                    a = out["answers"][qid]
+                    a["probs"] = {"False": a["probs"]["false"], "True": a["probs"]["true"]}
+                    a["prediction_set"] = [p == "true" for p in a["prediction_set"]]
+            return out
+
+    report = evaluate(EngineSpelled(), _rows(10, wrong_every=5), Q)
+    assert report["questions"]["churn"]["coverage"] == 0.8     # was 0.0 before the fix
