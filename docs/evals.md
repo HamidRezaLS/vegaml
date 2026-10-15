@@ -31,7 +31,10 @@ Per question and pooled overall:
 * `coverage` and `mean_set_size`: how often the label was inside the conformal set, and how
   wide the set had to be to achieve that. At `alpha=0.1` coverage should sit near 0.9, and a
   set that covers by always holding every option is measured, not hidden;
-* `abstain_rate`, plus `latency_ms_p50` / `p95` and `n_tokens_per_decision` overall.
+* `abstain_rate` and `unbound_rate`, separately: abstains mean the case was too hard to
+  commit on, unbounds mean the input sat off the calibrated map. Many of the former is a
+  `fit()` problem; many of the latter means your traffic drifted, so recalibrate;
+* `latency_ms_p50` / `p95` and `n_tokens_per_decision` overall.
 
 ## What to do with a bad number
 

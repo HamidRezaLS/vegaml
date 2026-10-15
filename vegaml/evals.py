@@ -10,7 +10,10 @@ optional ``"questions"`` carrying per-row questions where the instruction itself
 shared questions come from ``--questions`` (inline JSON or ``@file``), the same sheet
 ``decide()`` takes. The report says, per question and overall, how often the model was right,
 how honest its probabilities were, whether the conformal sets covered at the rate they claim,
-and what each decision cost. Numbers like these on *your* data are the only ones that matter;
+and what each decision cost. ``abstain_rate`` and ``unbound_rate`` are reported separately
+because they call for different fixes: many abstains mean the task is hard for the engine
+(fit heads on labels), many unbounds mean the traffic drifted off the calibrated map
+(refit with fresh samples). Numbers like these on *your* data are the only ones that matter;
 nobody's test split is your traffic.
 """
 from __future__ import annotations
@@ -89,13 +92,14 @@ def evaluate(model, rows: Sequence[Mapping], questions: Mapping, mode: str = "en
                                  % (label, qid, options))
             answer = out["answers"][qid]
             d = per_q.setdefault(qid, {"right": [], "conf": [], "abstain": [],
-                                       "covered": [], "set_size": []})
+                                       "unbound": [], "covered": [], "set_size": []})
             predicted = _prediction(answer, asked[qid]["type"], options)
             d["right"].append(predicted == label)
             conf = answer.get("confidence")
             if conf is not None:
                 d["conf"].append((float(conf), predicted == label))
             d["abstain"].append(bool(answer.get("abstain")))
+            d["unbound"].append(bool(answer.get("unbound")))
             pset = answer.get("prediction_set")
             if pset is not None:
                 d["covered"].append(label in {_canon(p, options) for p in pset})
@@ -106,7 +110,8 @@ def evaluate(model, rows: Sequence[Mapping], questions: Mapping, mode: str = "en
     def summarise(d: Dict[str, List]) -> Dict:
         n = len(d["right"])
         s = {"n": n, "accuracy": round(sum(d["right"]) / n, 4),
-             "abstain_rate": round(sum(d["abstain"]) / n, 4)}
+             "abstain_rate": round(sum(d["abstain"]) / n, 4),
+             "unbound_rate": round(sum(d["unbound"]) / n, 4)}
         if d["conf"]:
             s["mean_confidence"] = round(sum(c for c, _ in d["conf"]) / len(d["conf"]), 4)
             s["ece"] = round(ece(d["conf"]), 4)
@@ -116,7 +121,8 @@ def evaluate(model, rows: Sequence[Mapping], questions: Mapping, mode: str = "en
         return s
 
     pooled: Dict[str, List] = {k: sum((d[k] for d in per_q.values()), [])
-                               for k in ("right", "conf", "abstain", "covered", "set_size")}
+                               for k in ("right", "conf", "abstain", "unbound", "covered",
+                                         "set_size")}
     overall = summarise(pooled)
     overall["latency_ms_p50"] = round(_quantile(latencies, 0.5), 1)
     overall["latency_ms_p95"] = round(_quantile(latencies, 0.95), 1)
