@@ -134,3 +134,18 @@ def test_the_engines_boolean_spelling_counts_as_covered():
 
     report = evaluate(EngineSpelled(), _rows(10, wrong_every=5), Q)
     assert report["questions"]["churn"]["coverage"] == 0.8     # was 0.0 before the fix
+
+
+def test_unbound_is_counted_apart_from_abstain():
+    class OffMap(_Scripted):
+        def decide(self, state, questions, mode=None, alpha="0.1", views=1):
+            out = super().decide(state, questions, mode=mode, alpha=alpha, views=views)
+            for qid in questions:
+                out["answers"][qid]["unbound"] = True      # off the calibrated map
+                out["answers"][qid]["abstain"] = False
+            return out
+
+    report = evaluate(OffMap(), _rows(10), Q)
+    assert report["questions"]["churn"]["unbound_rate"] == 1.0
+    assert report["questions"]["churn"]["abstain_rate"] == 0.0
+    assert report["overall"]["unbound_rate"] == 1.0
