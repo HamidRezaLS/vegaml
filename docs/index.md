@@ -1,0 +1,20 @@
+# vegaml documentation
+
+One read of the state, typed answers out, each with a probability you can act on. The
+[README](../README.md) covers the Python API and the measured numbers; these pages cover the
+surfaces around it.
+
+| Page | What it covers |
+| --- | --- |
+| [Questions](questions.md) | The three question types and how to write their criteria |
+| [CLI](cli.md) | `vegaml`: decisions from the shell, single or JSONL batches |
+| [HTTP API](http-api.md) | `vegaml-serve`: the decide() call over HTTP |
+| [MCP](mcp.md) | `vegaml-mcp-server`: decide() as a tool for agents |
+| [Structured](structured.md) | A pydantic model as the question sheet and the answer |
+| [ONNX](onnx.md) | Export the engine, run it anywhere onnxruntime does |
+| [MLX](mlx.md) | The engine on Apple silicon without torch |
+| [Docker](docker.md) | The HTTP server as a container |
+
+Every extra is additive and none changes the core: `pip install vegaml` stays enough for the
+Python API, and `vegaml[serve]`, `[mcp]`, `[structured]`, `[onnx]` and `[mlx]` each add exactly
+one of the surfaces above.

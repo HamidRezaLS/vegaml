@@ -166,6 +166,22 @@ question using the old name is rejected with the valid types listed, rather than
 reinterpreted. Checkpoints published before the change key their conformal thresholds by the old
 name; the loader remaps them, so an older checkpoint still loads with its prediction sets intact.
 
+## Beyond the Python API
+
+Each surface is one extra; none changes the core, and [docs/](docs/index.md) covers them all.
+
+| Surface | Install | One line |
+| --- | --- | --- |
+| [CLI](docs/cli.md) | ships with `vegaml` | `vegaml "state" --boolean "churn=Threatens to leave?"`, JSONL batches on one load |
+| [HTTP](docs/http-api.md) | `vegaml[serve]` | `vegaml-serve`: POST /v1/decide returns exactly what decide() returns |
+| [MCP](docs/mcp.md) | `vegaml[mcp]` | `vegaml-mcp-server`: decide() as a tool an agent can gate on |
+| [Structured](docs/structured.md) | `vegaml[structured]` | a pydantic model as the question sheet and the validated answer |
+| [ONNX](docs/onnx.md) | `vegaml[onnx]` | export the engine, run it anywhere onnxruntime does |
+| [MLX](docs/mlx.md) | `vegaml[mlx]` | the engine on Apple silicon without torch in the process |
+| [Docker](docs/docker.md) | repo | `docker compose up`: the HTTP server as a container |
+
+Runnable starts for each live in [examples/](examples/).
+
 ## Two sizes
 
 Both live in the same checkpoint repository and take the same code path. `load()` with no argument
