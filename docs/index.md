@@ -13,6 +13,7 @@ surfaces around it.
 | [Structured](structured.md) | A pydantic model as the question sheet and the answer |
 | [Cascade](router.md) | The 0.8B answers what it can settle, the 4B gets the rest |
 | [Calibration](calibration.md) | Refit the probabilities on your own labels |
+| [Evals](evals.md) | `vegaml-eval`: measure the model on your labelled decisions |
 | [ONNX](onnx.md) | Export the engine, run it anywhere onnxruntime does |
 | [MLX](mlx.md) | The engine on Apple silicon without torch |
 | [Docker](docker.md) | The HTTP server as a container |

@@ -54,6 +54,7 @@ structured = ["pydantic>=2.0"]
 vegaml = "vegaml.cli:main"
 vegaml-serve = "vegaml.serve:main"
 vegaml-mcp-server = "vegaml.mcp_server:main"
+vegaml-eval = "vegaml.evals:main"
 
 [project.urls]
 Homepage = "https://github.com/NandhaKishorM/vegaml"
