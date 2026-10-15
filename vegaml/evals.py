@@ -22,7 +22,7 @@ import time
 from typing import Dict, List, Mapping, Optional, Sequence
 
 from . import label_ids
-from .calibrate import ece
+from .calibrate import canon_probs, ece
 
 __all__ = ["evaluate", "main"]
 
@@ -33,7 +33,13 @@ def _quantile(xs: List[float], q: float) -> float:
     return xs[i]
 
 
-def _prediction(answer: Mapping, qtype: str) -> Optional[str]:
+def _canon(value, options: Sequence[str]) -> str:
+    """The option id a value names, whatever its spelling: True, "True" and "true" are one."""
+    by_fold = {o.lower(): o for o in options}
+    return by_fold.get(str(value).lower(), str(value))
+
+
+def _prediction(answer: Mapping, qtype: str, options: Sequence[str]) -> Optional[str]:
     """The predicted option id, read from the type-specific field or the probabilities."""
     if qtype == "boolean" and "boolean" in answer:
         return "true" if answer["boolean"] >= 0.5 else "false"
@@ -42,7 +48,10 @@ def _prediction(answer: Mapping, qtype: str) -> Optional[str]:
     if qtype == "choice" and "choice" in answer:
         return str(answer["choice"])
     probs = answer.get("probs")
-    return max(probs, key=probs.get) if probs else None
+    if not probs:
+        return None
+    canon = canon_probs(probs, options)
+    return max(canon, key=canon.get)
 
 
 def evaluate(model, rows: Sequence[Mapping], questions: Mapping, mode: str = "engine",
@@ -81,7 +90,7 @@ def evaluate(model, rows: Sequence[Mapping], questions: Mapping, mode: str = "en
             answer = out["answers"][qid]
             d = per_q.setdefault(qid, {"right": [], "conf": [], "abstain": [],
                                        "covered": [], "set_size": []})
-            predicted = _prediction(answer, asked[qid]["type"])
+            predicted = _prediction(answer, asked[qid]["type"], options)
             d["right"].append(predicted == label)
             conf = answer.get("confidence")
             if conf is not None:
@@ -89,7 +98,7 @@ def evaluate(model, rows: Sequence[Mapping], questions: Mapping, mode: str = "en
             d["abstain"].append(bool(answer.get("abstain")))
             pset = answer.get("prediction_set")
             if pset is not None:
-                d["covered"].append(label in {str(p) for p in pset})
+                d["covered"].append(label in {_canon(p, options) for p in pset})
                 d["set_size"].append(len(pset))
     if not per_q:
         raise ValueError("no row labels a question in the sheet")

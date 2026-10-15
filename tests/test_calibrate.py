@@ -129,3 +129,36 @@ def test_the_refusals_name_the_problem():
         calibrate(_Overconfident(), [], QB)
     with pytest.raises(ValueError, match="miscoverage"):
         calibrate(_Overconfident(), _boolean_examples(), QB, alpha=1.5)
+
+
+# ------------------------------------------------- the engine's own boolean spelling
+
+class _EngineSpelled:
+    """Booleans exactly as the real engine answers them: "False"/"True" probs, bool set."""
+
+    def decide(self, state, questions, mode=None, alpha="0.1", views=1):
+        p = 0.97 if state["claim"] == "true" else 0.03
+        return {"answers": {q: {"probs": {"False": 1 - p, "True": p},
+                                "prediction_set": [p >= 0.5], "abstain": False,
+                                "boolean": p, "confidence": max(p, 1 - p)}
+                            for q in questions}}
+
+
+def test_the_engines_boolean_spelling_is_understood():
+    rng = random.Random(3)
+    ex = []
+    for _ in range(30):
+        claim = rng.choice(["false", "true"])
+        truth = claim if rng.random() < 0.7 else ("true" if claim == "false" else "false")
+        ex.append(({"claim": claim}, {"churn": truth}))
+    cal = calibrate(_EngineSpelled(), ex, QB)                  # KeyError before the fix
+    assert cal.report["churn"]["calibrated"]
+    a = cal.apply(_EngineSpelled().decide({"claim": "true"}, QB))["answers"]["churn"]
+    assert set(a["probs"]) == {"false", "true"}                # re-keyed onto the option ids
+    assert a["boolean"] == a["probs"]["true"]
+
+
+def test_a_probability_key_naming_no_option_is_refused():
+    from vegaml.calibrate import canon_probs
+    with pytest.raises(ValueError, match="names no option"):
+        canon_probs({"yes": 0.9, "no": 0.1}, ["false", "true"])
