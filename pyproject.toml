@@ -47,6 +47,8 @@ mlx = ['mlx>=0.30; platform_machine == "arm64" and sys_platform == "darwin"']
 onnx = ["onnx>=1.16", "onnxruntime>=1.19", "onnxscript>=0.1"]
 # `pip install vegaml[mcp]` adds the MCP stdio server (vegaml.mcp_server / vegaml-mcp-server).
 mcp = ["mcp>=2.2"]
+# `pip install vegaml[structured]` adds the pydantic question-sheet helpers (vegaml.structured).
+structured = ["pydantic>=2.0"]
 
 [project.scripts]
 vegaml = "vegaml.cli:main"
