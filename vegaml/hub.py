@@ -71,11 +71,16 @@ def patterns_for(subfolder: str) -> list[str]:
 
 
 def fetch(repo_id: Optional[str] = None, revision: Optional[str] = None,
-          token: Union[str, bool, None] = None, cache_dir: Optional[str] = None) -> str:
+          token: Union[str, bool, None] = None, cache_dir: Optional[str] = None,
+          reader: Optional[str] = None) -> str:
     """Return a local directory holding a checkpoint.
 
     `repo_id` may be a size name (``"0.8b"``, the default, or ``"4b"``), a Hub repository id, or a
     local path. A local path is passed through unchanged, so this is safe to call on either.
+
+    `reader` is the short name of a reader inside a universal (vega-U) repository, such as
+    ``"gemma-3-1b-it"``. Its subfolder is downloaded alongside the root with the same data-only
+    allow-list; a repository without that subfolder simply matches nothing extra.
 
     `token` defaults to whatever :func:`default_token` finds in the environment, which is how a
     private or gated repository loads without the caller passing anything. It stays optional: with
@@ -92,6 +97,10 @@ def fetch(repo_id: Optional[str] = None, revision: Optional[str] = None,
     else:
         repo, subfolder = name, ""
 
+    patterns = patterns_for(subfolder)
+    if reader and not subfolder:
+        patterns = patterns + [f"{reader}/{p}" for p in ALLOW_PATTERNS if p != COUNTER_FILE]
+
     explicit = token is not None and token is not False
     if token is None:
         token = default_token()
@@ -100,7 +109,7 @@ def fetch(repo_id: Optional[str] = None, revision: Optional[str] = None,
 
     try:
         local = snapshot_download(repo, revision=revision, token=token, cache_dir=cache_dir,
-                                  allow_patterns=patterns_for(subfolder))
+                                  allow_patterns=patterns)
     except Exception as exc:
         # Matched by name rather than by class: importing huggingface_hub.errors here would make
         # the whole library a hard import just to describe a failure.
@@ -108,6 +117,39 @@ def fetch(repo_id: Optional[str] = None, revision: Optional[str] = None,
             raise _auth_error(repo, name, token, explicit) from exc
         raise
     return os.path.join(local, subfolder) if subfolder else local
+
+
+def reader_dir(path: str, backbone: str) -> str:
+    """Inside a universal (vega-U) checkpoint, the dir carrying the port for `backbone`.
+
+    `backbone` is whatever the caller would pass to load the reader itself: a Hub id like
+    ``"google/gemma-3-1b-it"``, or a local path to those weights; its last path component is the
+    reader's name. The repo root is one reader, every other one is a subfolder of the same name.
+    A classic (non-universal) checkpoint comes back unchanged, so ``backbone=`` keeps its old
+    meaning there: an alternate location of the SAME backbone.
+    """
+    import json
+
+    cfg_path = os.path.join(path, "vega_config.json")
+    if not os.path.isfile(cfg_path):
+        return path
+    with open(cfg_path) as f:
+        cfg = json.load(f)
+    if not cfg.get("port"):
+        return path
+    name = os.path.basename(backbone.rstrip("/"))
+    if cfg.get("backbone_name") == name or cfg.get("backbone_name") == backbone:
+        return path
+    sub = os.path.join(path, name)
+    if os.path.isfile(os.path.join(sub, "vega_config.json")):
+        return sub
+    have = [cfg.get("backbone_name", "the root reader")] + sorted(
+        os.path.basename(d) for d in os.listdir(path)
+        if os.path.isfile(os.path.join(path, d, "vega_config.json")))
+    raise ValueError(
+        "this universal checkpoint has no port for %r. Readers it ships: %s. A new reader is "
+        "attached with the training-side attach tooling, never by retraining the engine."
+        % (name, ", ".join(have)))
 
 
 def _is_auth_error(exc: BaseException) -> bool:

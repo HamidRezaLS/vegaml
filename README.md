@@ -238,14 +238,22 @@ linear map per tapped layer into a shared 1024-d space) and the raw feature stat
 extraction (`stats.npz`). The engine lives in the shared space and is byte-identical across
 every backbone; only the port and the calibration are per reader.
 
-Loading one is the same call as always, and **changing the base model is changing which
-per-backbone dir you load**, nothing else:
+Loading one is the same call as always, and **changing the base model is naming it**,
+nothing else:
 
 ```python
-v = vegaml.load("outputs/universal/per_backbone/Qwen3.5-0.8B")   # the 0.8B reads for the engine
-v = vegaml.load("outputs/universal/per_backbone/Qwen3.5-4B")     # the 4B reads for the SAME engine
-v = vegaml.load("outputs/universal/per_backbone/gemma-3-1b-it")  # so does a different family
+v = vegaml.load("nandakishorm/vega-U")                                   # the default reader
+v = vegaml.load("nandakishorm/vega-U", backbone="Qwen/Qwen3.5-4B")       # same engine, 4B reads
+v = vegaml.load("nandakishorm/vega-U", backbone="google/gemma-3-1b-it")  # gated: set HF_TOKEN
+v = vegaml.load("outputs/universal/per_backbone/Qwen3.5-4B")             # or any dir on disk
 ```
+
+On a universal checkpoint, `backbone=` names WHICH reader: the dir carrying that reader's
+port and calibration is selected by its name (repo root or subfolder), and the reader's own
+weights come from their original repository. The token question belongs to the reader, not to
+vega-U: Qwen loads with no token, Gemma 3 is gated so `HF_TOKEN` must be set and the licence
+accepted. Asking for a reader the checkpoint has no port for fails with the list of readers
+it ships.
 
 The package recognises the `port` key in `vega_config.json` and inserts the
 standardize-then-port step in front of the engine automatically; `decide()` and everything

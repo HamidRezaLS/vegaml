@@ -30,16 +30,17 @@ fitted on too few examples to cross-validate is left to the engine.
 """
 from __future__ import annotations
 
+import os
 import time
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
-from .hub import default_token, fetch
+from .hub import default_token, fetch, reader_dir
 from .ttt import TTTHead
 
 # MODES and label_ids are imported by name from outside this package (the bench adapter, the tests),
 # so they belong in __all__ rather than merely being present as module attributes.
 __all__ = ["load", "Vega", "TTTHead", "fetch", "default_token", "label_ids", "MODES", "__version__"]
-__version__ = "0.10.0"
+__version__ = "0.10.1"
 
 MODES = ("auto", "engine", "ttt", "both")
 
@@ -76,9 +77,16 @@ class Vega:
         # checkpoint is actually being loaded.
         from ._api import Vega as _Engine
 
-        path = fetch(repo_or_path, revision=revision, token=token)
-        # backbone=None lets the engine read backbone_name out of the checkpoint's own config,
-        # which is what makes load("4b") pull Qwen3.5-4B rather than the 0.8B one.
+        reader = os.path.basename(backbone.rstrip("/")) if backbone else None
+        path = fetch(repo_or_path, revision=revision, token=token, reader=reader)
+        # On a universal (vega-U) checkpoint, backbone= names WHICH reader: the dir carrying
+        # that reader's port and calibration is selected by its name, so
+        # load("nandakishorm/vega-U", backbone="google/gemma-3-1b-it") is the whole call. On a
+        # classic checkpoint it keeps its old meaning, an alternate location of the same
+        # backbone, and backbone=None lets the engine read backbone_name out of the
+        # checkpoint's own config, which is what makes load("4b") pull Qwen3.5-4B.
+        if backbone:
+            path = reader_dir(path, backbone)
         return cls(_Engine(path, backbone=backbone, device=device, adapters=adapters,
                            max_len=max_len), mode=mode)
 

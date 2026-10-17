@@ -101,3 +101,71 @@ def test_api_wraps_on_port_key(tmp_path, monkeypatch):
     v.set_adapters("off")
     assert v._core() is v.engine.engine
     assert v.engine.engine.adapter_mode == "off"
+
+
+def _universal_repo(tmp_path):
+    """A downloaded universal repo: root = one reader, a sibling reader as a subfolder."""
+    root_cfg = {"port": "port.safetensors", "backbone_name": "Qwen3.5-0.8B", "d_shared": 16}
+    (tmp_path / "vega_config.json").write_text(json.dumps(root_cfg))
+    sub = tmp_path / "gemma-3-1b-it"
+    sub.mkdir()
+    (sub / "vega_config.json").write_text(json.dumps(dict(root_cfg, backbone_name="gemma-3-1b-it")))
+    return tmp_path
+
+
+def test_reader_dir_picks_by_backbone_name(tmp_path):
+    from vegaml.hub import reader_dir
+
+    repo = _universal_repo(tmp_path)
+    assert reader_dir(str(repo), "Qwen/Qwen3.5-0.8B") == str(repo)          # the root reader
+    assert reader_dir(str(repo), "google/gemma-3-1b-it") == str(repo / "gemma-3-1b-it")
+    assert reader_dir(str(repo), "/models/gemma-3-1b-it/") == str(repo / "gemma-3-1b-it")
+    with pytest.raises(ValueError) as e:
+        reader_dir(str(repo), "mistralai/Mistral-7B")
+    assert "gemma-3-1b-it" in str(e.value)       # the error names what the repo does ship
+
+
+def test_reader_dir_leaves_classic_checkpoints_alone(tmp_path):
+    from vegaml.hub import reader_dir
+
+    (tmp_path / "vega_config.json").write_text(json.dumps({"backbone_name": "Qwen3.5-0.8B"}))
+    assert reader_dir(str(tmp_path), "/local/weights/of/the/same/backbone") == str(tmp_path)
+    assert reader_dir(str(tmp_path / "no-config-here"), "x") == str(tmp_path / "no-config-here")
+
+
+def test_fetch_requests_the_reader_subfolder(tmp_path, monkeypatch):
+    import sys
+    import types
+
+    from vegaml import hub
+
+    seen = {}
+
+    def fake_snapshot_download(repo_id, **kw):
+        seen.update(kw, repo_id=repo_id)
+        return str(tmp_path)
+
+    stub = types.ModuleType("huggingface_hub")
+    stub.snapshot_download = fake_snapshot_download
+    monkeypatch.setitem(sys.modules, "huggingface_hub", stub)
+
+    hub.fetch("someone/vega-U", reader="gemma-3-1b-it")
+    pats = seen["allow_patterns"]
+    assert "gemma-3-1b-it/vega_config.json" in pats
+    assert "gemma-3-1b-it/port.safetensors" in pats
+    # the data-only rule survives the widening: still nothing executable, no wildcard suffix
+    for p in pats:
+        assert p.endswith((".json", ".safetensors", ".npz")), p
+
+
+def test_from_pretrained_routes_backbone_to_its_reader(tmp_path, monkeypatch):
+    import vegaml
+    from vegaml import _api
+
+    repo = _universal_repo(tmp_path)
+    monkeypatch.setattr(vegaml, "fetch", lambda *a, **k: str(repo))
+    got = {}
+    monkeypatch.setattr(_api, "Vega", lambda path, **kw: got.update(path=path, **kw) or object())
+    vegaml.Vega.from_pretrained("someone/vega-U", backbone="google/gemma-3-1b-it")
+    assert got["path"] == str(repo / "gemma-3-1b-it")
+    assert got["backbone"] == "google/gemma-3-1b-it"
