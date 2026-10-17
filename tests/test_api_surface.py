@@ -228,11 +228,12 @@ def test_the_4b_reads_from_its_own_folder(monkeypatch):
     monkeypatch.setitem(sys.modules, "huggingface_hub", stub)
 
     out = hub.fetch("4b")
+    sub = hub.VARIANTS["4b"]
     assert seen["repo_id"] == hub.DEFAULT_REPO, "both sizes live in one repository"
     # os.path.join, not "/": the separator is the platform's, so a test that hardcodes "/" is a test
     # that can only pass on POSIX. This one failed on every Windows checkout.
-    assert out == os.path.join("/tmp/snapshot", "4b")
-    assert all(p.startswith("4b/") for p in seen["allow_patterns"]
+    assert out == os.path.join("/tmp/snapshot", sub)
+    assert all(p.startswith(sub + "/") for p in seen["allow_patterns"]
                if p != hub.COUNTER_FILE), "only the counter file sits outside the folder"
 
 

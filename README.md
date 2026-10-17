@@ -39,8 +39,8 @@ publishes through PyPI Trusted Publishing, so no API token exists in this reposi
 ```python
 import vegaml
 
-v = vegaml.load()            # the 0.8B, mode="auto": both are the defaults
-# v = vegaml.load("4b")      # the 4B, same repository, same interface
+v = vegaml.load()            # vega-U with the 0.8B reader: the default
+# v = vegaml.load("4b")      # vega-U with the Qwen3.5-4B reader, same engine, same interface
 
 out = v.decide(
     {"from": "billing@acme.com", "subject": "Invoice overdue", "body": "Third notice. Pay now."},
@@ -212,9 +212,11 @@ seconds to load against 27, and it answers in 106 ms against 74. Pick the 4B whe
 the room and the task has more than a handful of labels; pick the 0.8B when it does not.
 
 ```python
-vegaml.load()                  # 0.8B
-vegaml.load("4b")              # 4B
-vegaml.load("owner/some-repo") # anything else on the Hub
+vegaml.load()                  # vega-U, 0.8B reader (the repo root)
+vegaml.load("4b")              # vega-U, Qwen3.5-4B reader
+vegaml.load("gemma-1b")        # vega-U, Gemma 3 1B reader
+vegaml.load("owner/some-repo") # anything else on the Hub, including the earlier
+                               # per-size checkpoints (nandakishorm/vega-08b-public-intents)
 vegaml.load("/path/on/disk")   # or a local directory
 ```
 
@@ -232,7 +234,9 @@ vegaml.load("owner/private-repo", token=tok)    # or pass it explicitly
 
 ## vega-U: one engine, any reader
 
-The universal line decouples the engine from the backbone. A vega-U checkpoint directory is a
+**vega-U is the default model**: `vegaml.load()` with no argument loads it with the 0.8B
+reader, and the size names ("4b", "gemma-1b") pick other readers of the same engine. The
+universal line decouples the engine from the backbone. A vega-U checkpoint directory is a
 normal vega model dir plus two files: the backbone's **port** (`port.safetensors`, one small
 linear map per tapped layer into a shared 1024-d space) and the raw feature statistics of its
 extraction (`stats.npz`). The engine lives in the shared space and is byte-identical across
@@ -242,10 +246,10 @@ Loading one is the same call as always, and **changing the base model is naming 
 nothing else:
 
 ```python
-v = vegaml.load("nandakishorm/vega-U")                                   # the default reader
-v = vegaml.load("nandakishorm/vega-U", backbone="Qwen/Qwen3.5-4B")       # same engine, 4B reads
-v = vegaml.load("nandakishorm/vega-U", backbone="google/gemma-3-1b-it")  # gated: set HF_TOKEN
-v = vegaml.load("outputs/universal/per_backbone/Qwen3.5-4B")             # or any dir on disk
+v = vegaml.load()                                             # the default reader
+v = vegaml.load(backbone="Qwen/Qwen3.5-4B")                   # same engine, the 4B reads
+v = vegaml.load(backbone="google/gemma-3-1b-it")              # gated reader: set HF_TOKEN
+v = vegaml.load("outputs/universal/per_backbone/Qwen3.5-4B")  # or any dir on disk
 ```
 
 On a universal checkpoint, `backbone=` names WHICH reader: the dir carrying that reader's

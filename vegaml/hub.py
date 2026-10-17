@@ -10,15 +10,18 @@ from __future__ import annotations
 import os
 from typing import Optional, Union
 
-#: The checkpoint repository. It holds more than one size.
-DEFAULT_REPO = "nandakishorm/vega-08b-public-intents"
+#: The checkpoint repository: the universal (vega-U) model, one engine behind per-reader
+#: ports. The earlier per-size checkpoints stay loadable by their full repository id
+#: ("nandakishorm/vega-08b-public-intents").
+DEFAULT_REPO = "nandakishorm/vega-U"
 
-#: Size name to the folder inside that repository. "" means the repository root.
-#: 0.8B sits at the root because it was there first and existing installs point at it.
+#: Size name to the folder inside that repository. "" means the repository root, where the
+#: default reader lives so that ``load()`` needs no name at all.
 VARIANTS = {
     "0.8b": "",
     "08b": "",
-    "4b": "4b",
+    "4b": "Qwen3.5-4B",
+    "gemma-1b": "gemma-3-1b-it",
 }
 
 #: Where a token is read from when the caller passes none, in that order. `HF_TOKEN` is the name
