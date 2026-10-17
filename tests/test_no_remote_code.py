@@ -24,7 +24,7 @@ def test_every_variant_scopes_the_allow_list_to_its_own_folder():
         pats = hub.patterns_for(sub)
         assert len(pats) == len(hub.ALLOW_PATTERNS), name
         for pat in pats:
-            assert pat.endswith((".json", ".safetensors")), (name, pat)
+            assert pat.endswith((".json", ".safetensors", ".npz")), (name, pat)
             # The download counter watches one file at the repository root, so that one is exempt
             # from the subfolder rule. Nothing else may escape its own folder.
             if sub and pat != hub.COUNTER_FILE:
@@ -38,10 +38,21 @@ def test_allow_list_has_no_executable_extension():
 
 
 def test_allow_list_is_data_only():
-    # Every entry resolves to json or safetensors. Widening this list is a security decision and
-    # should fail here until the test is updated deliberately.
+    # Every entry resolves to json, safetensors, or npz. Widening this list is a security
+    # decision and should fail here until the test is updated deliberately. The one npz is a
+    # vega-U checkpoint's feature statistics; it is arrays only, and the test below pins that
+    # every np.load in the package spells out allow_pickle=False.
     for pattern in hub.ALLOW_PATTERNS:
-        assert pattern.endswith((".json", ".safetensors")), pattern
+        assert pattern.endswith((".json", ".safetensors", ".npz")), pattern
+
+
+def test_every_np_load_refuses_pickles():
+    # npz on the allow-list is only data because numpy is told not to unpickle. Spelling it out
+    # at every call site keeps that true even if numpy's default ever changes.
+    for path in PKG.rglob("*.py"):
+        for ln in path.read_text(encoding="utf-8").splitlines():
+            if "np.load(" in ln or "numpy.load(" in ln:
+                assert "allow_pickle=False" in ln, "%s: %s" % (path.name, ln.strip())
 
 
 def test_download_is_restricted_to_the_allow_list(monkeypatch):

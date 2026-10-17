@@ -52,6 +52,9 @@ ALLOW_PATTERNS = [
     "engine.safetensors",
     "adapters/*.safetensors",
     "adapters/*.json",
+    # a vega-U (universal) checkpoint adds the backbone's port and its extraction statistics
+    "port.safetensors",
+    "stats.npz",
 ]
 
 

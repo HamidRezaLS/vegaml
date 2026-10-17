@@ -230,6 +230,31 @@ vegaml.load("owner/private-repo")               # uses $HF_TOKEN if it is set
 vegaml.load("owner/private-repo", token=tok)    # or pass it explicitly
 ```
 
+## vega-U: one engine, any reader
+
+The universal line decouples the engine from the backbone. A vega-U checkpoint directory is a
+normal vega model dir plus two files: the backbone's **port** (`port.safetensors`, one small
+linear map per tapped layer into a shared 1024-d space) and the raw feature statistics of its
+extraction (`stats.npz`). The engine lives in the shared space and is byte-identical across
+every backbone; only the port and the calibration are per reader.
+
+Loading one is the same call as always, and **changing the base model is changing which
+per-backbone dir you load**, nothing else:
+
+```python
+v = vegaml.load("outputs/universal/per_backbone/Qwen3.5-0.8B")   # the 0.8B reads for the engine
+v = vegaml.load("outputs/universal/per_backbone/Qwen3.5-4B")     # the 4B reads for the SAME engine
+v = vegaml.load("outputs/universal/per_backbone/gemma-3-1b-it")  # so does a different family
+```
+
+The package recognises the `port` key in `vega_config.json` and inserts the
+standardize-then-port step in front of the engine automatically; `decide()` and everything
+downstream are unchanged. A new reader is attached by the training-side tooling
+(`attach_backbone.py`: closed-form port fit against stored shared-space targets, a short
+refine, a calibration refit), never by retraining the engine or fine-tuning the reader. In
+the first universal run a Qwen3.5-4B attached that way, cold, scored 0.791 held-out accuracy
+against 0.765 for the 0.8B the engine trained with, at 0.017 calibration error.
+
 ## Fine-tuning
 
 [`notebooks/vega_finetune_2xT4_kaggle.ipynb`](notebooks/vega_finetune_2xT4_kaggle.ipynb) trains a

@@ -68,6 +68,12 @@ class Vega:
         self.engine = VegaEngine(self.cfg["d_model"], len(self.cfg["feature_layers"]), len(self.cfg["option_layers"]),
                                   self.cfg)
         self.engine.load_state_dict(load_file(os.path.join(model_dir, "engine.safetensors")))
+        if self.cfg.get("port"):
+            # A vega-U (universal) checkpoint: the engine lives in a shared space and this dir
+            # carries the backbone's port into it. Raw features are standardized with the
+            # extraction statistics and ported before the engine ever sees them.
+            from ._universal import UniversalEngine
+            self.engine = UniversalEngine(model_dir, self.cfg, self.engine)
         self.engine.to(self.device).eval()
         self.halt = halt
         cal = self.cfg.get("calibration_teacher" if calibration == "teacher" else "calibration") or {}
@@ -108,9 +114,14 @@ class Vega:
             self._sha = h.hexdigest()
         return self._sha
 
+    def _core(self):
+        """The VegaEngine itself: behind the port wrapper on a vega-U checkpoint, or self.engine
+        directly. Attribute WRITES must land here; reads fall through the wrapper anyway."""
+        return getattr(self.engine, "engine", self.engine)
+
     def add_adapter(self, state, meta):
         """Attach one adapter (tensors + its json) to the engine; returns its index."""
-        j = load_adapter(self.engine, state, meta["rank"], meta["alpha"])
+        j = load_adapter(self._core(), state, meta["rank"], meta["alpha"])
         self.engine.to(self.device).eval()
         cal = (meta.get("calibration_teacher") if self.calibration == "teacher" else None) or meta["calibration"]
         self.adapters.append({"name": meta["name"], "meta": meta, "cal": {
@@ -125,7 +136,7 @@ class Vega:
         assert mode in ("auto", "on", "off"), mode
         if mode == "on" and len(self.adapters) > 1:
             print("vega: %d adapters all on at once; \"auto\" lets each question pick" % len(self.adapters))
-        self.engine.adapter_mode = mode if self.adapters else "off"
+        self._core().adapter_mode = mode if self.adapters else "off"
 
     def _cal(self, r):
         if r < 0:
