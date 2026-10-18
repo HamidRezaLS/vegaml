@@ -188,6 +188,48 @@ id to its definition, and every example is `[state, {question_id: label}]`, the 
 }
 ```
 
+**The structure of the calibration JSON**, piece by piece:
+
+| piece | what goes there |
+| --- | --- |
+| `questions` | the decisions your business actually makes, each with an id, a `type` and `instructions` written as you would brief a person |
+| `type: "boolean"` | a yes or no decision; labels are `true` / `false` |
+| `type: "choice"` | one of your own categories; `criteria` maps each label to a one-line description, and the label in an example is the key, like `"billing"` |
+| `type: "score"` | an ordered scale; `criteria` lists the levels from lowest to highest and the label is the level's index, `0` to `4` here |
+| `examples` | `[state, {question_id: label}]` pairs from your history; the state is the text (or a JSON object, like the Quick start email) and the labels are what actually happened |
+| partial labels | fine: an example may label only some of the questions |
+
+This is where your own business plugs in, whatever it is, because the labels are just your
+historical outcomes. A finance team would write it like this, straight from records it
+already keeps:
+
+```json
+{
+ "questions": {
+  "chargeback": {"type": "boolean", "instructions": "Will this transaction be disputed by the cardholder?"},
+  "action":     {"type": "choice",  "instructions": "What should happen to this payment?",
+                 "criteria": {"approve": "clear it automatically",
+                              "review": "route to a human analyst",
+                              "escalate": "freeze and escalate to risk"}},
+  "risk":       {"type": "score",   "instructions": "How risky is this transaction?",
+                 "criteria": ["routine", "slightly unusual", "noteworthy", "suspicious", "almost certainly fraud"]}
+ },
+ "examples": [
+  [{"merchant": "QUICKCASH LTD", "amount": "2,450.00", "country": "new for this card",
+    "note": "third high-value charge tonight, customer usually spends under 60"},
+   {"chargeback": true, "action": "escalate", "risk": 4}],
+  [{"merchant": "GROCERY MART", "amount": "54.20", "country": "home",
+    "note": "weekly pattern, same store"},
+   {"chargeback": false, "action": "approve", "risk": 0}]
+ ]
+}
+```
+
+A support desk would label which team took the ticket, an insurer which claims were
+escalated, a lender which applications defaulted: the ids, the categories and the scale are
+yours to define, and the engine answers THOSE questions with probabilities calibrated on
+THOSE outcomes.
+
 Roughly 500 labelled examples per question type is usable and 1,000 to 2,000 is where the
 numbers settle. The refit covers the temperature (physics-conditioned where it beats a plain
 one on a holdout), the conformal prediction-set thresholds, the abstain thresholds and the
