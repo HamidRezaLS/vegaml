@@ -64,6 +64,17 @@ self-supervised. The checkpoint's own root reader generates the shared-space tar
 text, so the port (what a port is: the vega-U section, next) is fitted from running both
 readers over the same prompts, on text you bring.
 
+The text file could not be simpler: plain UTF-8, **one document per line**, no labels, no
+headers, no JSON. A long document stays on its one line (replace any newlines inside it with
+spaces); blank lines are skipped. The shipped starter corpus looks like this:
+
+```text
+I was charged 320.00 twice for the booking system all week. Please refund the duplicate and confirm by email, or I will have to cancel the account.
+Review: disappointed with the router. It looked fine out of the box but failed with an authentication loop on the second day, and support has not replied this morning.
+Incident report, the north plant: at 06:40 the sensor on line 2 reported a blank screen. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.
+Full incident timeline, for the record. <...a several-thousand-token document, still one line...>
+```
+
 ```python
 import vegaml
 
