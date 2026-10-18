@@ -49,10 +49,39 @@ At load time the runtime sees the `port` key, standardizes raw perception featur
 `stats.npz`, maps them through the port, and runs the shared engine there. `decide()` and
 everything downstream are identical to a classic checkpoint. In the Hub repository the root
 is one reader (so the plain repo id loads with no subfolder) and every other reader is a
-self-contained subfolder; `universal/` carries the shared-space targets and ports that the
-training-side attach tooling uses to add the next reader: a closed-form port fit against
-stored targets, a short refine against the frozen engine, and a calibration refit.
+self-contained subfolder; `universal/` carries the shared-space targets and ports the
+training-side tooling uses, and the same recipe (a closed-form port fit, a short refine
+against the frozen engine, a calibration refit) is what `vegaml.attach` runs locally, below.
 Calibration never transfers between readers, so each directory ships its own.
+
+## Attaching your own reader
+
+From 0.12, adding a reader is a package call, not a training run, and it needs none of the
+original training data. The alignment is self-supervised: the checkpoint's root reader (the
+anchor) computes the shared-space target for any text, so `vegaml.attach` fits the new port
+from both readers reading the same prompts, on text you bring.
+
+```python
+report = vegaml.attach("mistralai/Mistral-7B-Instruct-v0.3",
+                       texts=my_texts, out_dir="vega-u-mistral-7b")
+v = vegaml.load("vega-u-mistral-7b")
+```
+
+What runs: the anchor reads every text under six fixed probe questions (all three answer
+types) and is freed; the new reader reads the same prompts; each tapped layer's map is fitted
+in closed form (ridge, lambda by holdout cosine, option and memory-chunk rows folded into the
+deepest layer) and then refined for a few hundred steps so the frozen engine decides the same
+way through the new port as through the anchor, a plain distillation with the anchor MSE kept
+on. The written directory carries the engine unchanged, byte for byte, plus
+`attach_ridge_cosines` in its config so the fit quality travels with it.
+
+Requirements, honestly: at least 100 texts (1,000+ recommended, diverse beats big), GPU
+memory for the new reader itself in bf16 (about 2 GB per billion parameters plus headroom;
+CPU and MPS work, slower), and tens of minutes for a 7B reader over 1,000 short texts. The
+dir is uncalibrated until `vegaml.calibrate(out_dir, examples, questions)` refits the
+temperature, conformal, abstain and unbound thresholds on your labelled examples, roughly
+500 per question type to be usable. A port fitted on your corpus is tuned to your domain;
+the published numbers below describe only the ports we ship.
 
 ## Measured, October 2026
 
@@ -93,3 +122,8 @@ each run's raw per-source detail ships as `eval_report.json` in its reader direc
 - **0.11.0**: vega-U becomes the default. `load()` with no argument is the universal 0.8B;
   `"4b"` and `"gemma-1b"` pick other readers of the same engine. The earlier per-size
   checkpoints stay loadable by their full repository id.
+- **0.12.0**: attach your own reader. `vegaml.attach(backbone, texts, out_dir)` fits a port
+  locally and self-supervised (the anchor generates the targets), and `vegaml.calibrate`
+  refits calibration on your own labelled examples. Also fixes default loading: a universal
+  config stores the bare reader name (`"Qwen3.5-0.8B"`), which is now resolved to the real
+  Hub id before the reader downloads.

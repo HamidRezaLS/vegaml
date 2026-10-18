@@ -39,8 +39,9 @@ from .ttt import TTTHead
 
 # MODES and label_ids are imported by name from outside this package (the bench adapter, the tests),
 # so they belong in __all__ rather than merely being present as module attributes.
-__all__ = ["load", "Vega", "TTTHead", "fetch", "default_token", "label_ids", "MODES", "__version__"]
-__version__ = "0.11.0"
+__all__ = ["load", "Vega", "TTTHead", "fetch", "default_token", "label_ids", "MODES",
+           "attach", "calibrate", "__version__"]
+__version__ = "0.12.0"
 
 MODES = ("auto", "engine", "ttt", "both")
 
@@ -353,6 +354,32 @@ def label_ids(question: Mapping) -> List[str]:
     if t == "score":
         return [str(i) for i in range(len(question.get("criteria") or []))]
     return [str(k) for k in question["criteria"]]
+
+
+def attach(backbone: str, texts, out_dir: str, **kw) -> Dict:
+    """Attach YOUR OWN frozen reader to the universal engine, from your own text.
+
+    Self-supervised: the checkpoint's root reader generates the shared-space targets, so no
+    labels and none of the original training data are needed. Writes a complete model dir that
+    :func:`load` loads like any shipped reader, the engine unchanged byte for byte. Labels
+    enter only through ``examples=`` here or :func:`calibrate` afterwards. See
+    :mod:`vegaml._attach` for the full story, including the probe prompts and the hardware it
+    takes (in short: enough GPU memory for the new reader itself)."""
+    from ._attach import attach as _attach
+
+    return _attach(backbone, texts, out_dir, **kw)
+
+
+def calibrate(model, examples, questions, **kw) -> Dict:
+    """Refit a checkpoint dir's calibration on your own labelled examples.
+
+    Calibration never transfers between readers or distributions, so this is the step after
+    :func:`attach`, and worth running on a shipped reader too when your data looks nothing like
+    the published splits. Roughly 500 examples per question type is usable; 1,000 to 2,000 is
+    where the numbers settle. The block is written into the dir and applied in place."""
+    from ._attach import calibrate as _calibrate
+
+    return _calibrate(model, examples, questions, **kw)
 
 
 def load(repo_or_path: Optional[str] = None, **kw) -> Vega:

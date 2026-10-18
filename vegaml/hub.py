@@ -24,6 +24,26 @@ VARIANTS = {
     "gemma-1b": "gemma-3-1b-it",
 }
 
+#: Reader names as a universal checkpoint's config stores them (`backbone_name`, the bare
+#: model name) mapped to the Hub id those weights actually live under. A checkpoint dir names
+#: its reader without the owning namespace, which is right for a dir and wrong for a download.
+READER_HUB_IDS = {
+    "Qwen3.5-0.8B": "Qwen/Qwen3.5-0.8B",
+    "Qwen3.5-4B": "Qwen/Qwen3.5-4B",
+    "Qwen3.8-27B": "Qwen/Qwen3.8-27B",
+    "gemma-3-1b-it": "google/gemma-3-1b-it",
+    "gemma-3-27b-it": "google/gemma-3-27b-it",
+}
+
+
+def backbone_hub_id(name: Optional[str]) -> Optional[str]:
+    """A loadable location for a checkpoint's `backbone_name`: a bare reader name becomes its
+    Hub id when it is a known reader; paths, Hub ids and unknown names pass through unchanged."""
+    if name and "/" not in name and not os.path.isdir(name):
+        return READER_HUB_IDS.get(name, name)
+    return name
+
+
 #: Where a token is read from when the caller passes none, in that order. `HF_TOKEN` is the name
 #: the Hugging Face CLI and the Hub libraries use; the other two are older spellings still in use.
 TOKEN_ENV = ("HF_TOKEN", "HUGGING_FACE_HUB_TOKEN", "HUGGINGFACEHUB_API_TOKEN")
@@ -151,8 +171,9 @@ def reader_dir(path: str, backbone: str) -> str:
         if os.path.isfile(os.path.join(path, d, "vega_config.json")))
     raise ValueError(
         "this universal checkpoint has no port for %r. Readers it ships: %s. A new reader is "
-        "attached with the training-side attach tooling, never by retraining the engine."
-        % (name, ", ".join(have)))
+        "attached by fitting its port, never by retraining the engine: vegaml.attach(%r, "
+        "texts=..., out_dir=...) does it locally from your own text."
+        % (name, ", ".join(have), backbone))
 
 
 def _is_auth_error(exc: BaseException) -> bool:

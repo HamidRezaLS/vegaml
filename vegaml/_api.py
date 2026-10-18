@@ -25,9 +25,21 @@ import numpy as np
 import torch
 
 from ._common import (
-    normalise_conformal, resolve_device,
-    QTYPES, VegaEngine, Perception, build_prompt, load_adapter, option_texts, prose_state,
-    route_adapters, route_per_adapter, serialize_state, softmax_np, thermal_features, thermal_tau,
+    QTYPES,
+    Perception,
+    VegaEngine,
+    build_prompt,
+    load_adapter,
+    normalise_conformal,
+    option_texts,
+    prose_state,
+    resolve_device,
+    route_adapters,
+    route_per_adapter,
+    serialize_state,
+    softmax_np,
+    thermal_features,
+    thermal_tau,
 )
 
 
@@ -59,7 +71,10 @@ class Vega:
         elif os.path.isdir(self.cfg.get("backbone", "")):
             bb = self.cfg["backbone"]
         elif self.cfg.get("backbone_name"):
-            bb = self.cfg["backbone_name"]
+            # the config stores the bare reader name ("Qwen3.5-0.8B"); downloading it needs
+            # the owning namespace, which the hub module knows for every shipped reader
+            from .hub import backbone_hub_id
+            bb = backbone_hub_id(self.cfg["backbone_name"])
         else:
             bb = self.cfg["backbone"]
         self.backbone = bb     # the one actually used, so the vision path loads the same weights
@@ -86,9 +101,8 @@ class Vega:
         self.unbound = cal.get("unbound_threshold", float("inf"))
         if not cal:
             print("vega: no calibration block in vega_config.json, so probabilities are raw and "
-                  "prediction_set is None. Refitting the temperature needs the evaluation script "
-                  "that shipped with the training run; this package reads calibration, it does not "
-                  "produce it.")
+                  "prediction_set is None. vegaml.calibrate(model_dir, examples, questions) "
+                  "refits it on your own labelled examples.")
         self.adapters = []
         self._sha = None
         assert adapters in ("auto", "on", "off"), adapters
