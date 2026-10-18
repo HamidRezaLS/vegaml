@@ -163,89 +163,24 @@ question using the old name is rejected with the valid types listed, rather than
 reinterpreted. Checkpoints published before the change key their conformal thresholds by the old
 name; the loader remaps them, so an older checkpoint still loads with its prediction sets intact.
 
-## vega-U: one engine, any reader
+## Attach your own model, without retraining anything
 
-**vega-U is the default model**: `vegaml.load()` with no argument loads it with the 0.8B
-reader, and the size names ("4b", "gemma-1b") pick other readers of the same engine. The
-universal line decouples the engine from the backbone. A vega-U checkpoint directory is a
-normal vega model dir plus two files: the backbone's **port** (`port.safetensors`, one small
-linear map per tapped layer into a shared 1024-d space) and the raw feature statistics of its
-extraction (`stats.npz`). The engine lives in the shared space and is byte-identical across
-every backbone; only the port and the calibration are per reader.
-
-Loading one is the same call as always, and **changing the base model is naming it**,
-nothing else:
-
-```python
-v = vegaml.load()                                             # the default reader
-v = vegaml.load(backbone="Qwen/Qwen3.5-4B")                   # same engine, the 4B reads
-v = vegaml.load(backbone="google/gemma-3-1b-it")              # gated reader: set HF_TOKEN
-v = vegaml.load("outputs/universal/per_backbone/Qwen3.5-4B")  # or any dir on disk
-```
-
-On a universal checkpoint, `backbone=` names WHICH reader: the dir carrying that reader's
-port and calibration is selected by its name (repo root or subfolder), and the reader's own
-weights come from their original repository. The token question belongs to the reader, not to
-vega-U: Qwen loads with no token, Gemma 3 is gated so `HF_TOKEN` must be set and the licence
-accepted. Asking for a reader the checkpoint has no port for fails with the list of readers
-it ships.
-
-The package recognises the `port` key in `vega_config.json` and inserts the
-standardize-then-port step in front of the engine automatically; `decide()` and everything
-downstream are unchanged. A new reader is attached by fitting its port (closed-form fit, a
-short refine, a calibration refit), never by retraining the engine or fine-tuning the
-reader, and from 0.12 you can do that yourself with `vegaml.attach`, below.
-
-Measured across the October 2026 runs, every cold-attached reader scored above the readers
-the engine trained with, on an engine that is checksum-identical behind all four:
-
-| reader | how | held-out acc | zero-shot acc | ECE | AURC | acc @ 50% cov |
-|---|---|---|---|---|---|---|
-| Qwen3.8-27B | attached cold | **0.811** | **0.629** | 0.021 | **0.053** | **0.976** |
-| Qwen3.5-4B | attached cold | 0.791 | 0.568 | 0.017 | 0.063 | 0.965 |
-| Qwen3.5-0.8B | trained jointly | 0.765 | 0.534 | 0.010 | 0.073 | 0.956 |
-| gemma-3-1b-it | trained jointly | 0.738 | 0.504 | 0.007 | 0.093 | 0.927 |
-
-The gains land where reading matters (long context 0.831 to 0.941 from the 0.8B to the 27B,
-ARC 0.647 to 0.922) and saturated tasks stay flat, which is the design's claim made
-measurable. The full per-source board, the checkpoint layout, the caveats and the version
-history are in [docs/vega-u.md](docs/vega-u.md).
-
-```python
-vegaml.load()                  # vega-U, 0.8B reader (the repo root)
-vegaml.load("4b")              # vega-U, Qwen3.5-4B reader
-vegaml.load("gemma-1b")        # vega-U, Gemma 3 1B reader
-vegaml.load("owner/some-repo") # anything else on the Hub, including the earlier
-                               # per-size checkpoints (nandakishorm/vega-08b-public-intents)
-vegaml.load("/path/on/disk")   # or a local directory
-```
-
-A private or gated repository needs a Hub token, and without one the Hub answers 401, which it
-reports identically to "no such repository". `fetch` turns that into one sentence naming which of
-the two it is and where it looked for a token. `load()` picks one up from `HF_TOKEN` in the
-environment, so nothing has to be threaded through the call; pass `token=...` to override it, or
-`token=False` to ignore the environment and fetch anonymously. It stays optional: the published
-checkpoints are public and load with no token set.
-
-```python
-vegaml.load("owner/private-repo")               # uses $HF_TOKEN if it is set
-vegaml.load("owner/private-repo", token=tok)    # or pass it explicitly
-```
-
-### Attach your own model, without retraining anything
-
-From 0.12, a reader the repo has no port for is something you attach yourself, locally,
-with `vegaml.attach`. The engine is never retrained, the reader is never fine-tuned, and
-none of the original training data is needed: the alignment is self-supervised. The
-checkpoint's own root reader generates the shared-space target for any text, so the port is
-fitted from running both readers over the same prompts, on text you bring.
+From 0.12, a base model the checkpoint ships no port for is something you attach yourself,
+locally, with `vegaml.attach`. The engine is never retrained, the reader is never
+fine-tuned, and none of the original training data is needed: the alignment is
+self-supervised. The checkpoint's own root reader generates the shared-space target for any
+text, so the port (what a port is: the vega-U section, next) is fitted from running both
+readers over the same prompts, on text you bring.
 
 ```python
 import vegaml
 
+# a synthetic starter corpus ships in the repo; swap in strings from YOUR domain
+texts = [t for t in open("examples/sample_attach_texts.txt") if t.strip()]
+
 report = vegaml.attach(
     "mistralai/Mistral-7B-Instruct-v0.3",   # any instruction-tuned causal LM
-    texts=my_texts,                          # plain strings from YOUR domain
+    texts=texts,
     out_dir="vega-u-mistral-7b",
 )
 print(report["ridge_cosines"])               # how faithfully the port landed
@@ -293,6 +228,75 @@ unbound threshold, written into the dir and applied in place. One honest caveat:
 fitted on your corpus is tuned to your domain, and the published benchmark numbers only
 describe the ports we ship.
 
+## vega-U: one engine, any reader
+
+**vega-U is the default model**: `vegaml.load()` with no argument loads it with the 0.8B
+reader, and the size names ("4b", "gemma-1b") pick other readers of the same engine. The
+universal line decouples the engine from the backbone. A vega-U checkpoint directory is a
+normal vega model dir plus two files: the backbone's **port** (`port.safetensors`, one small
+linear map per tapped layer into a shared 1024-d space) and the raw feature statistics of its
+extraction (`stats.npz`). The engine lives in the shared space and is byte-identical across
+every backbone; only the port and the calibration are per reader.
+
+Loading one is the same call as always, and **changing the base model is naming it**,
+nothing else:
+
+```python
+v = vegaml.load()                                             # the default reader
+v = vegaml.load(backbone="Qwen/Qwen3.5-4B")                   # same engine, the 4B reads
+v = vegaml.load(backbone="google/gemma-3-1b-it")              # gated reader: set HF_TOKEN
+v = vegaml.load("outputs/universal/per_backbone/Qwen3.5-4B")  # or any dir on disk
+```
+
+On a universal checkpoint, `backbone=` names WHICH reader: the dir carrying that reader's
+port and calibration is selected by its name (repo root or subfolder), and the reader's own
+weights come from their original repository. The token question belongs to the reader, not to
+vega-U: Qwen loads with no token, Gemma 3 is gated so `HF_TOKEN` must be set and the licence
+accepted. Asking for a reader the checkpoint has no port for fails with the list of readers
+it ships.
+
+The package recognises the `port` key in `vega_config.json` and inserts the
+standardize-then-port step in front of the engine automatically; `decide()` and everything
+downstream are unchanged. A new reader is attached by fitting its port (closed-form fit, a
+short refine, a calibration refit), never by retraining the engine or fine-tuning the
+reader, and from 0.12 you can do that yourself with `vegaml.attach`, above.
+
+Measured across the October 2026 runs, every cold-attached reader scored above the readers
+the engine trained with, on an engine that is checksum-identical behind all four:
+
+| reader | how | held-out acc | zero-shot acc | ECE | AURC | acc @ 50% cov |
+|---|---|---|---|---|---|---|
+| Qwen3.8-27B | attached cold | **0.811** | **0.629** | 0.021 | **0.053** | **0.976** |
+| Qwen3.5-4B | attached cold | 0.791 | 0.568 | 0.017 | 0.063 | 0.965 |
+| Qwen3.5-0.8B | trained jointly | 0.765 | 0.534 | 0.010 | 0.073 | 0.956 |
+| gemma-3-1b-it | trained jointly | 0.738 | 0.504 | 0.007 | 0.093 | 0.927 |
+
+The gains land where reading matters (long context 0.831 to 0.941 from the 0.8B to the 27B,
+ARC 0.647 to 0.922) and saturated tasks stay flat, which is the design's claim made
+measurable. The full per-source board, the checkpoint layout, the caveats and the version
+history are in [docs/vega-u.md](docs/vega-u.md).
+
+```python
+vegaml.load()                  # vega-U, 0.8B reader (the repo root)
+vegaml.load("4b")              # vega-U, Qwen3.5-4B reader
+vegaml.load("gemma-1b")        # vega-U, Gemma 3 1B reader
+vegaml.load("owner/some-repo") # anything else on the Hub, including the earlier
+                               # per-size checkpoints (nandakishorm/vega-08b-public-intents)
+vegaml.load("/path/on/disk")   # or a local directory
+```
+
+A private or gated repository needs a Hub token, and without one the Hub answers 401, which it
+reports identically to "no such repository". `fetch` turns that into one sentence naming which of
+the two it is and where it looked for a token. `load()` picks one up from `HF_TOKEN` in the
+environment, so nothing has to be threaded through the call; pass `token=...` to override it, or
+`token=False` to ignore the environment and fetch anonymously. It stays optional: the published
+checkpoints are public and load with no token set.
+
+```python
+vegaml.load("owner/private-repo")               # uses $HF_TOKEN if it is set
+vegaml.load("owner/private-repo", token=tok)    # or pass it explicitly
+```
+
 ## Beyond the Python API
 
 Each surface is one extra; none changes the core, and [docs/](docs/index.md) covers them all.
@@ -325,8 +329,6 @@ fully supported and loadable by their repository id
 The practical trade-off is the backbone, not the engine: `Qwen/Qwen3.5-4B` is 9.34 GB against
 1.77 GB for the 0.8B and takes 61 seconds to load against 27. Pick the 4B when the machine has
 the room and the task has more than a handful of labels; pick the 0.8B when it does not.
-
-```
 
 ## Fine-tuning
 
