@@ -72,7 +72,7 @@ def test_engine_attributes_fall_through(tmp_path):
     assert uni.memory is engine.memory
     assert uni.adapter_mode == engine.adapter_mode
     with pytest.raises(AttributeError):
-        uni.not_a_real_attribute
+        _ = uni.not_a_real_attribute
 
 
 def test_api_wraps_on_port_key(tmp_path, monkeypatch):

@@ -140,3 +140,7 @@ each run's raw per-source detail ships as `eval_report.json` in its reader direc
   refits calibration on your own labelled examples. Also fixes default loading: a universal
   config stores the bare reader name (`"Qwen3.5-0.8B"`), which is now resolved to the real
   Hub id before the reader downloads.
+- **0.12.1**: `vegaml.calibrate` on a Hub-loaded model writes safely. A cache snapshot's
+  `vega_config.json` is a symlink into the blob store; the refit now replaces the link with
+  a real file instead of writing through it, so the content-addressed blob keeps its bytes
+  and the refit persists for later `load()` calls on the same machine.
