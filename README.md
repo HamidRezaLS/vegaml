@@ -230,6 +230,30 @@ escalated, a lender which applications defaulted: the ids, the categories and th
 yours to define, and the engine answers THOSE questions with probabilities calibrated on
 THOSE outcomes.
 
+None of this needs `attach`. The same call recalibrates the shipped readers, so the shortest
+path to vega-U on your own business is the default Qwen3.5-0.8B plus your JSON:
+
+```python
+import json
+import vegaml
+
+# (on Colab, same starter file:
+#  !curl -sO https://raw.githubusercontent.com/NandhaKishorM/vegaml/main/examples/sample_calibrate.json)
+cal = json.load(open("examples/sample_calibrate.json"))   # or your own file, same shape
+
+v = vegaml.load()                                         # the shipped Qwen3.5-0.8B reader
+report = vegaml.calibrate(v, cal["examples"], cal["questions"])
+print(report["ece_before"], "->", report["ece_after"])
+
+out = v.decide("The dishwasher stopped working this morning and now shows error E-114.",
+               cal["questions"])
+print(out["answers"]["category"]["choice"], out["answers"]["urgency"]["score"])
+```
+
+The refit lands on the loaded model immediately and is written into your local copy of the
+checkpoint, so later `vegaml.load()` calls on this machine keep it. The Hub copy is never
+touched: a fresh download restores the shipped calibration.
+
 Roughly 500 labelled examples per question type is usable and 1,000 to 2,000 is where the
 numbers settle. The refit covers the temperature (physics-conditioned where it beats a plain
 one on a holdout), the conformal prediction-set thresholds, the abstain thresholds and the

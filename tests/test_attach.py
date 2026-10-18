@@ -132,6 +132,28 @@ def test_calibrate_writes_a_block_the_loader_reads(tmp_path):
     assert "choice" in v.conformal
 
 
+def test_calibrate_never_writes_through_an_hf_cache_symlink(tmp_path):
+    # A Hub-loaded model dir is an HF cache snapshot: vega_config.json is a symlink into the
+    # content-addressed blob store. The refit must land in a real file at the snapshot path
+    # and leave the blob byte-identical, or the cache's hashes stop being true.
+    blob = tmp_path / "blobs" / "c92eb46450a8206b25d9765933b810b8acb05ed9"
+    os.makedirs(blob.parent)
+    original = json.dumps({"d_model": 8})
+    blob.write_text(original)
+    snap = tmp_path / "snapshot"
+    os.makedirs(snap)
+    os.symlink(os.path.join("..", "blobs", blob.name), snap / "vega_config.json")
+
+    v = _StubVega(snap)
+    questions = {"team": {"type": "choice", "instructions": "which team",
+                          "criteria": {"a": None, "b": None, "c": None}}}
+    calibrate(v, [(str(i), {"team": ["a", "b", "c"][i % 3]}) for i in range(150)], questions)
+
+    assert blob.read_text() == original                    # the blob kept its promised bytes
+    assert not os.path.islink(snap / "vega_config.json")   # the snapshot got a real file
+    assert json.load(open(snap / "vega_config.json"))["calibration"]["fitted_by"] == "vegaml.calibrate"
+
+
 def test_calibrate_refuses_labels_outside_the_options(tmp_path):
     with open(os.path.join(tmp_path, "vega_config.json"), "w") as f:
         json.dump({}, f)

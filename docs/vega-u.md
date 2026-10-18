@@ -90,6 +90,12 @@ temperature, conformal, abstain and unbound thresholds on your labelled examples
 500 per question type to be usable. A port fitted on your corpus is tuned to your domain;
 the published numbers below describe only the ports we ship.
 
+`calibrate` is not tied to attach. Passed a loaded shipped reader,
+`vegaml.calibrate(vegaml.load(), examples, questions)` refits that reader's calibration on
+your own outcomes, applied in place and written into your local copy of the checkpoint (a
+cache snapshot's config symlink is replaced by a real file, so the blob store stays intact
+and the Hub copy is never touched).
+
 ## Measured, October 2026
 
 Trained jointly on Qwen3.5-0.8B and Gemma 3 1B (708,657 uid-matched items, records up to

@@ -552,6 +552,12 @@ def calibrate(model, examples: Sequence, questions: Mapping, risks=("0.05", "0.1
     with open(cfg_path) as f:
         cfg = json.load(f)
     cfg["calibration"] = cal
+    # A Hub-loaded model's dir is an HF cache snapshot, where every file is a symlink into a
+    # content-addressed blob store. Writing through the link would corrupt the shared blob, so
+    # the link is replaced with a real file: the snapshot gets the new calibration, the blob
+    # keeps the bytes its hash promises, and a fresh download still restores the shipped one.
+    if os.path.islink(cfg_path):
+        os.unlink(cfg_path)
     with open(cfg_path, "w") as f:
         json.dump(cfg, f, indent=2)
     v.theta, v.abstain, v.risk = theta, cal["abstain_threshold"], cal["default_risk"]
