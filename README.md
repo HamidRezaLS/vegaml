@@ -79,6 +79,9 @@ Full incident timeline, for the record. <...a several-thousand-token document, s
 import vegaml
 
 # a synthetic starter corpus ships in the repo; swap in strings from YOUR domain
+# (on Colab, fetch it first:
+#  !curl -sO https://raw.githubusercontent.com/NandhaKishorM/vegaml/main/examples/sample_attach_texts.txt
+#  and open "sample_attach_texts.txt")
 texts = [t for t in open("examples/sample_attach_texts.txt") if t.strip()]
 
 report = vegaml.attach(
@@ -121,7 +124,56 @@ What to bring, and what it costs:
   data we could ship because they match your distribution:
 
 ```python
-vegaml.calibrate("vega-u-mistral-7b", examples, questions)   # same shapes as Vega.fit
+import json
+
+# a labelled starter set ships next to the corpus: the question sheet plus
+# 600 [state, labels] pairs, generated with ground-truth labels
+# (on Colab:
+#  !curl -sO https://raw.githubusercontent.com/NandhaKishorM/vegaml/main/examples/sample_calibrate.json)
+cal = json.load(open("examples/sample_calibrate.json"))
+
+vegaml.calibrate("vega-u-mistral-7b", cal["examples"], cal["questions"])
+```
+
+And then the attached, calibrated model answers exactly like the Quick start one:
+
+```python
+v = vegaml.load("vega-u-mistral-7b")
+
+out = v.decide(
+    "The dishwasher stopped working this morning and now shows error E-114. "
+    "I already restarted it twice. Send a technician this week or refund me.",
+    cal["questions"])                                # or any questions of your own
+
+print(out["answers"]["complaint"]["boolean"])        # p(yes), high here
+print(out["answers"]["category"]["choice"])          # 'technical'
+print(out["answers"]["category"]["probs"])           # calibrated on YOUR examples, sums to 1
+print(out["answers"]["urgency"]["score"])            # 0 to 4
+print(out["answers"]["complaint"]["abstain"])        # False -> the engine stands behind it
+```
+
+`sample_calibrate.json` is also the format to copy for your own data: `questions` maps each
+id to its definition, and every example is `[state, {question_id: label}]`, the same shapes
+`Vega.fit` takes:
+
+```json
+{
+ "questions": {
+  "complaint": {"type": "boolean", "instructions": "Does the text describe a problem, fault or complaint?"},
+  "category":  {"type": "choice",  "instructions": "Which area does this text belong to?",
+                "criteria": {"billing": "money, invoices, charges or subscriptions",
+                             "technical": "devices, software or technical faults",
+                             "operations": "logistics, facilities, incidents or travel",
+                             "other": "anything else"}},
+  "urgency":   {"type": "score",   "instructions": "How urgent is the text?",
+                "criteria": ["no urgency at all", "slightly time-sensitive", "moderately urgent",
+                             "clearly urgent", "critical, immediate action needed"]}
+ },
+ "examples": [
+  ["I was charged 49.99 twice for my laptop over the weekend. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {"complaint": true, "category": "billing", "urgency": 3}]
+ ]
+}
 ```
 
 Roughly 500 labelled examples per question type is usable and 1,000 to 2,000 is where the

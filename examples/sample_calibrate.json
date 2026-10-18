@@ -1,0 +1,4831 @@
+{
+ "questions": {
+  "complaint": {
+   "type": "boolean",
+   "instructions": "Does the text describe a problem, fault or complaint?"
+  },
+  "category": {
+   "type": "choice",
+   "instructions": "Which area does this text belong to?",
+   "criteria": {
+    "billing": "money, invoices, charges or subscriptions",
+    "technical": "devices, software or technical faults",
+    "operations": "logistics, facilities, incidents or travel",
+    "other": "anything else"
+   }
+  },
+  "urgency": {
+   "type": "score",
+   "instructions": "How urgent is the text?",
+   "criteria": [
+    "no urgency at all",
+    "slightly time-sensitive",
+    "moderately urgent",
+    "clearly urgent",
+    "critical, immediate action needed"
+   ]
+  }
+ },
+ "examples": [
+  [
+   "I was charged 49.99 twice for my laptop over the weekend. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Please schedule a technician for the mobile app at the Lisbon branch. It powers on but a blank screen appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Please schedule a technician for the printer at the north plant. It powers on but code 502 appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter right before the demo, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Reminder that the invoice for 49.99 from the support agent is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "I want to praise the support agent for how they handled the outage during the night shift. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Reminder that the invoice for 7.20 from my neighbour is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "the thermostat stopped working right before the demo and now shows exit status 3. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Reminder that the invoice for 320.00 from the landlord is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Reminder that the invoice for 89.00 from the delivery driver is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Reminder that the invoice for 2,450.00 from the contractor is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Please schedule a technician for the printer at meeting room 4. It powers on but error E-114 appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with our billing portal left the storefront this morning and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Subscription question: if I downgrade my laptop mid-cycle, is the difference of 2,450.00 credited or lost? The FAQ contradicts what the delivery driver told me last Tuesday.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "I was charged 16.75 twice for the thermostat right before the demo. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter over the weekend, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the migration plan. One correction: the figure of 16.75 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Please schedule a technician for my laptop at the north plant. It powers on but exit status 3 appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the staging environment is cancelled last Tuesday. Rebooking is free until midnight; after that a change fee of 7.20 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter last Tuesday, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Meeting notes: we agreed our supplier owns the release schedule, the draft is due in two weeks, and we revisit the budget once the numbers from the loading dock arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "the router stopped working since the last update and now shows checksum mismatch. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Reminder that the invoice for 16.75 from my manager is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with the subscription left the staging environment last Tuesday and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the printer mid-cycle, is the difference of 320.00 credited or lost? The FAQ contradicts what the contractor told me an hour ago.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "the dishwasher stopped working since the last update and now shows ERR_TIMEOUT. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Can someone confirm whether the coffee machine supports exporting to CSV? The docs mention it but the menu at meeting room 4 only shows PDF, and the client is asking since the last update.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Meeting notes: we agreed the delivery driver owns the vendor contract, the draft is due in two weeks, and we revisit the budget once the numbers from the Lisbon branch arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I was charged 2,450.00 twice for the subscription since the last update. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter during the night shift, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "the smart lock stopped working since the last update and now shows ERR_TIMEOUT. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Meeting notes: we agreed the contractor owns the training budget, the draft is due in two weeks, and we revisit the budget once the numbers from the north plant arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "the invoice tool stopped working all week and now shows a blank screen. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "I was charged 2,450.00 twice for my laptop since the last update. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Order update: your package with the mobile app left warehouse B an hour ago and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Order update: your package with the wireless headphones left the loading dock during the night shift and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "the invoice tool stopped working during the night shift and now shows an authentication loop. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Meeting notes: we agreed our supplier owns the release schedule, the draft is due in two weeks, and we revisit the budget once the numbers from warehouse B arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Reminder that the invoice for 320.00 from my neighbour is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the new tenant will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, meeting room 4: at 06:40 the sensor on line 2 reported code 502. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Can someone confirm whether the delivery service supports exporting to CSV? The docs mention it but the menu at the north plant only shows PDF, and the client is asking for the third time this month.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Please schedule a technician for the smart lock at the storefront. It powers on but checksum mismatch appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Review: disappointed with the router. It looked fine out of the box but failed with ERR_TIMEOUT on the second day, and support has not replied right before the demo.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: the printer is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly all week. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Please schedule a technician for the thermostat at the storefront. It powers on but a spinning wheel appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Subscription question: if I downgrade our billing portal mid-cycle, is the difference of 1,180.00 credited or lost? The FAQ contradicts what a colleague told me an hour ago.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Incident report, the Lisbon branch: at 06:40 the sensor on line 2 reported exit status 3. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the subscription? my manager says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Heads up: warehouse B reported a water leak an hour ago. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Quick note: the delivery driver asked to move the discussion about the quarterly forecast to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "the smart lock stopped working for the third time this month and now shows an authentication loop. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the finance team will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: the coffee machine is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly over the weekend. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Please schedule a technician for our billing portal at meeting room 4. It powers on but error E-114 appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Subscription question: if I downgrade my laptop mid-cycle, is the difference of 1,180.00 credited or lost? The FAQ contradicts what the new tenant told me during the night shift.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Please schedule a technician for the mobile app at the downtown office. It powers on but a spinning wheel appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the mobile app? the new tenant says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Meeting notes: we agreed the new tenant owns the vendor contract, the draft is due in two weeks, and we revisit the budget once the numbers from meeting room 4 arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the delivery driver will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the finance team will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times since the last update, each attempt ending in a spinning wheel. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the storefront is cancelled for the third time this month. Rebooking is free until midnight; after that a change fee of 89.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Meeting notes: we agreed the delivery driver owns the release schedule, the draft is due in two weeks, and we revisit the budget once the numbers from meeting room 4 arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: the router is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly this morning. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: the booking system is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly since the last update. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise the delivery driver for how they handled the outage right before the demo. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: disappointed with the thermostat. It looked fine out of the box but failed with exit status 3 on the second day, and support has not replied last Tuesday.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Heads up: the loading dock reported a water leak since the last update. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times this morning, each attempt ending in a blank screen. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: my laptop is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly last Tuesday. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Order update: your package with the coffee machine left the staging environment last Tuesday and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the finance team will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "the printer stopped working all week and now shows error E-114. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "my laptop stopped working all week and now shows an authentication loop. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Can someone confirm whether my laptop supports exporting to CSV? The docs mention it but the menu at meeting room 4 only shows PDF, and the client is asking all week.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter right before the demo, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: my laptop is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly right before the demo. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether the delivery service supports exporting to CSV? The docs mention it but the menu at the north plant only shows PDF, and the client is asking during the night shift.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Order update: your package with the mobile app left the north plant right before the demo and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Please schedule a technician for my laptop at the downtown office. It powers on but an authentication loop appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Subscription question: if I downgrade our shared calendar mid-cycle, is the difference of 89.00 credited or lost? The FAQ contradicts what our supplier told me right before the demo.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the staging environment is cancelled last Tuesday. Rebooking is free until midnight; after that a change fee of 320.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter this morning, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the contractor will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Meeting notes: we agreed the landlord owns the roadmap review, the draft is due in two weeks, and we revisit the budget once the numbers from the loading dock arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether the booking system supports exporting to CSV? The docs mention it but the menu at warehouse B only shows PDF, and the client is asking all week.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. my manager will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the vendor contract. One correction: the figure of 1,180.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Heads up: the north plant reported a water leak over the weekend. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Reminder that the invoice for 2,450.00 from the landlord is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Incident report, the north plant: at 06:40 the sensor on line 2 reported an authentication loop. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Reminder that the invoice for 7.20 from the contractor is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Heads up: the Lisbon branch reported a water leak right before the demo. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "I was charged 7.20 twice for the coffee machine since the last update. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Review: disappointed with the invoice tool. It looked fine out of the box but failed with an authentication loop on the second day, and support has not replied right before the demo.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 320.00 from the new tenant is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Can someone confirm whether the thermostat supports exporting to CSV? The docs mention it but the menu at warehouse B only shows PDF, and the client is asking over the weekend.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "my laptop stopped working for the third time this month and now shows an authentication loop. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "the delivery service stopped working over the weekend and now shows exit status 3. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Heads up: the staging environment reported a water leak over the weekend. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Review: disappointed with the delivery service. It looked fine out of the box but failed with checksum mismatch on the second day, and support has not replied an hour ago.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Can someone confirm whether the booking system supports exporting to CSV? The docs mention it but the menu at warehouse B only shows PDF, and the client is asking right before the demo.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Quick note: the delivery driver asked to move the discussion about the vendor contract to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise my manager for how they handled the outage this morning. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times during the night shift, each attempt ending in exit status 3. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the downtown office is cancelled last Tuesday. Rebooking is free until midnight; after that a change fee of 89.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Review: the wireless headphones is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly over the weekend. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the vendor contract. One correction: the figure of 320.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "the coffee machine stopped working all week and now shows exit status 3. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "I want to praise the delivery driver for how they handled the outage last Tuesday. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "the coffee machine stopped working over the weekend and now shows checksum mismatch. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Meeting notes: we agreed my neighbour owns the onboarding checklist, the draft is due in two weeks, and we revisit the budget once the numbers from warehouse B arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Please schedule a technician for the dishwasher at warehouse B. It powers on but exit status 3 appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times all week, each attempt ending in a spinning wheel. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the router mid-cycle, is the difference of 7.20 credited or lost? The FAQ contradicts what my manager told me an hour ago.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "the invoice tool stopped working all week and now shows ERR_TIMEOUT. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the audit findings. One correction: the figure of 49.99 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Heads up: the staging environment reported a water leak right before the demo. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "I was charged 2,450.00 twice for the smart lock during the night shift. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Review: the printer is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly last Tuesday. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise the contractor for how they handled the outage this morning. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from meeting room 4 is cancelled right before the demo. Rebooking is free until midnight; after that a change fee of 1,180.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Review: disappointed with the router. It looked fine out of the box but failed with an authentication loop on the second day, and support has not replied an hour ago.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Order update: your package with the dishwasher left the storefront all week and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Quick note: the support agent asked to move the discussion about the roadmap review to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "the mobile app stopped working this morning and now shows exit status 3. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "I was charged 49.99 twice for our billing portal over the weekend. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "I want to praise the support agent for how they handled the outage an hour ago. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, meeting room 4: at 06:40 the sensor on line 2 reported code 502. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter for the third time this month, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether our billing portal supports exporting to CSV? The docs mention it but the menu at the staging environment only shows PDF, and the client is asking this morning.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 320.00 from a colleague is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with the thermostat left warehouse B this morning and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the Lisbon branch is cancelled during the night shift. Rebooking is free until midnight; after that a change fee of 320.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Incident report, the north plant: at 06:40 the sensor on line 2 reported an authentication loop. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "the thermostat stopped working during the night shift and now shows a spinning wheel. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Reminder that the invoice for 49.99 from the finance team is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the audit findings. One correction: the figure of 1,180.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Quick note: a colleague asked to move the discussion about the vendor contract to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise my manager for how they handled the outage an hour ago. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Heads up: the Lisbon branch reported a water leak last Tuesday. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the roadmap review. One correction: the figure of 1,180.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 2,450.00 from the new tenant is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the Lisbon branch is cancelled all week. Rebooking is free until midnight; after that a change fee of 1,180.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "I want to praise the support agent for how they handled the outage since the last update. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, warehouse B: at 06:40 the sensor on line 2 reported checksum mismatch. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with the thermostat left the loading dock during the night shift and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: my laptop is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly over the weekend. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the landlord will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the north plant is cancelled since the last update. Rebooking is free until midnight; after that a change fee of 2,450.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Quick note: the finance team asked to move the discussion about the training budget to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I was charged 2,450.00 twice for the printer an hour ago. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "I was charged 2,450.00 twice for the router over the weekend. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the delivery driver will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Order update: your package with the subscription left warehouse B for the third time this month and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times since the last update, each attempt ending in error E-114. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 89.00 from the support agent is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Meeting notes: we agreed my manager owns the migration plan, the draft is due in two weeks, and we revisit the budget once the numbers from the staging environment arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Order update: your package with the thermostat left the staging environment all week and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Heads up: the Lisbon branch reported a water leak last Tuesday. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Reminder that the invoice for 1,180.00 from my neighbour is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Reminder that the invoice for 89.00 from the contractor is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Review: disappointed with my laptop. It looked fine out of the box but failed with a spinning wheel on the second day, and support has not replied for the third time this month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the training budget. One correction: the figure of 1,180.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Quick note: my neighbour asked to move the discussion about the migration plan to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Reminder that the invoice for 16.75 from the delivery driver is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Quick note: the new tenant asked to move the discussion about the onboarding checklist to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Heads up: the storefront reported a water leak since the last update. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Can someone confirm whether my laptop supports exporting to CSV? The docs mention it but the menu at the Lisbon branch only shows PDF, and the client is asking an hour ago.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Please schedule a technician for the router at the Lisbon branch. It powers on but error E-114 appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "the delivery service stopped working over the weekend and now shows error E-114. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Incident report, the loading dock: at 06:40 the sensor on line 2 reported checksum mismatch. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Meeting notes: we agreed the delivery driver owns the roadmap review, the draft is due in two weeks, and we revisit the budget once the numbers from the staging environment arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter since the last update, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, warehouse B: at 06:40 the sensor on line 2 reported exit status 3. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times all week, each attempt ending in ERR_TIMEOUT. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from warehouse B is cancelled all week. Rebooking is free until midnight; after that a change fee of 2,450.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times this morning, each attempt ending in ERR_TIMEOUT. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the north plant is cancelled over the weekend. Rebooking is free until midnight; after that a change fee of 89.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the finance team will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the coffee machine mid-cycle, is the difference of 49.99 credited or lost? The FAQ contradicts what the landlord told me all week.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the thermostat mid-cycle, is the difference of 212.40 credited or lost? The FAQ contradicts what my manager told me over the weekend.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Can someone confirm whether the smart lock supports exporting to CSV? The docs mention it but the menu at the north plant only shows PDF, and the client is asking since the last update.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. a colleague will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise my manager for how they handled the outage during the night shift. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the migration plan. One correction: the figure of 7.20 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: disappointed with my laptop. It looked fine out of the box but failed with exit status 3 on the second day, and support has not replied an hour ago.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Order update: your package with our shared calendar left the loading dock during the night shift and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Heads up: the Lisbon branch reported a water leak for the third time this month. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "I want to praise the landlord for how they handled the outage last Tuesday. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: disappointed with the dishwasher. It looked fine out of the box but failed with checksum mismatch on the second day, and support has not replied an hour ago.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "I was charged 7.20 twice for the router for the third time this month. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "I want to praise the delivery driver for how they handled the outage since the last update. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether the router supports exporting to CSV? The docs mention it but the menu at the storefront only shows PDF, and the client is asking all week.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Meeting notes: we agreed our supplier owns the onboarding checklist, the draft is due in two weeks, and we revisit the budget once the numbers from the Lisbon branch arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Order update: your package with the wireless headphones left the north plant during the night shift and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "I was charged 320.00 twice for the printer all week. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Meeting notes: we agreed the finance team owns the audit findings, the draft is due in two weeks, and we revisit the budget once the numbers from warehouse B arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise my manager for how they handled the outage right before the demo. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether our billing portal supports exporting to CSV? The docs mention it but the menu at the north plant only shows PDF, and the client is asking right before the demo.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Can someone confirm whether the wireless headphones supports exporting to CSV? The docs mention it but the menu at meeting room 4 only shows PDF, and the client is asking for the third time this month.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Quick note: the delivery driver asked to move the discussion about the onboarding checklist to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise my neighbour for how they handled the outage all week. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "my laptop stopped working for the third time this month and now shows an authentication loop. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with the mobile app left the north plant last Tuesday and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Quick note: the new tenant asked to move the discussion about the audit findings to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through our shared calendar? the support agent says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Subscription question: if I downgrade our shared calendar mid-cycle, is the difference of 212.40 credited or lost? The FAQ contradicts what a colleague told me over the weekend.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: disappointed with the mobile app. It looked fine out of the box but failed with exit status 3 on the second day, and support has not replied this morning.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the coffee machine mid-cycle, is the difference of 7.20 credited or lost? The FAQ contradicts what our supplier told me all week.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "our shared calendar stopped working this morning and now shows a blank screen. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Meeting notes: we agreed my neighbour owns the migration plan, the draft is due in two weeks, and we revisit the budget once the numbers from warehouse B arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the thermostat? the landlord says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "I was charged 49.99 twice for our shared calendar this morning. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. a colleague will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the finance team will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Meeting notes: we agreed our supplier owns the audit findings, the draft is due in two weeks, and we revisit the budget once the numbers from the north plant arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, the staging environment: at 06:40 the sensor on line 2 reported exit status 3. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Incident report, meeting room 4: at 06:40 the sensor on line 2 reported a spinning wheel. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the loading dock is cancelled right before the demo. Rebooking is free until midnight; after that a change fee of 49.99 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Heads up: meeting room 4 reported a water leak last Tuesday. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Meeting notes: we agreed the finance team owns the onboarding checklist, the draft is due in two weeks, and we revisit the budget once the numbers from the storefront arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "the router stopped working during the night shift and now shows code 502. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter right before the demo, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the invoice tool mid-cycle, is the difference of 1,180.00 credited or lost? The FAQ contradicts what the finance team told me last Tuesday.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: disappointed with our billing portal. It looked fine out of the box but failed with ERR_TIMEOUT on the second day, and support has not replied last Tuesday.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Quick note: the new tenant asked to move the discussion about the training budget to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from meeting room 4 is cancelled during the night shift. Rebooking is free until midnight; after that a change fee of 16.75 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with our shared calendar left the storefront all week and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, the north plant: at 06:40 the sensor on line 2 reported a spinning wheel. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "I was charged 212.40 twice for the mobile app over the weekend. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times for the third time this month, each attempt ending in checksum mismatch. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Can someone confirm whether our shared calendar supports exporting to CSV? The docs mention it but the menu at the loading dock only shows PDF, and the client is asking for the third time this month.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "the thermostat stopped working last Tuesday and now shows a blank screen. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with the delivery service left the storefront all week and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise a colleague for how they handled the outage last Tuesday. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I was charged 16.75 twice for the smart lock last Tuesday. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Meeting notes: we agreed the finance team owns the training budget, the draft is due in two weeks, and we revisit the budget once the numbers from the north plant arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise the finance team for how they handled the outage since the last update. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, the storefront: at 06:40 the sensor on line 2 reported a spinning wheel. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter this morning, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Please schedule a technician for the thermostat at the downtown office. It powers on but checksum mismatch appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the booking system mid-cycle, is the difference of 16.75 credited or lost? The FAQ contradicts what the landlord told me right before the demo.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 7.20 from the contractor is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the dishwasher? the new tenant says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Meeting notes: we agreed our supplier owns the vendor contract, the draft is due in two weeks, and we revisit the budget once the numbers from the loading dock arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I was charged 49.99 twice for the router during the night shift. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Order update: your package with the subscription left the loading dock last Tuesday and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Reminder that the invoice for 7.20 from my neighbour is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "I was charged 7.20 twice for the router an hour ago. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the onboarding checklist. One correction: the figure of 1,180.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the smart lock mid-cycle, is the difference of 2,450.00 credited or lost? The FAQ contradicts what the new tenant told me since the last update.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Quick note: the finance team asked to move the discussion about the roadmap review to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the new tenant will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Order update: your package with the thermostat left the storefront all week and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, the Lisbon branch: at 06:40 the sensor on line 2 reported an authentication loop. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the subscription mid-cycle, is the difference of 49.99 credited or lost? The FAQ contradicts what a colleague told me since the last update.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: disappointed with the invoice tool. It looked fine out of the box but failed with an authentication loop on the second day, and support has not replied for the third time this month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Meeting notes: we agreed the new tenant owns the audit findings, the draft is due in two weeks, and we revisit the budget once the numbers from the loading dock arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether the wireless headphones supports exporting to CSV? The docs mention it but the menu at the Lisbon branch only shows PDF, and the client is asking this morning.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Meeting notes: we agreed the landlord owns the release schedule, the draft is due in two weeks, and we revisit the budget once the numbers from the north plant arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Meeting notes: we agreed a colleague owns the release schedule, the draft is due in two weeks, and we revisit the budget once the numbers from the Lisbon branch arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times an hour ago, each attempt ending in checksum mismatch. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 16.75 from the delivery driver is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Reminder that the invoice for 320.00 from the finance team is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Incident report, the storefront: at 06:40 the sensor on line 2 reported error E-114. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "I want to praise the support agent for how they handled the outage over the weekend. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter during the night shift, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Heads up: the Lisbon branch reported a water leak since the last update. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Reminder that the invoice for 212.40 from the contractor is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the dishwasher? our supplier says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Order update: your package with the thermostat left meeting room 4 since the last update and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: the smart lock is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly this morning. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the north plant is cancelled last Tuesday. Rebooking is free until midnight; after that a change fee of 2,450.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with the mobile app left the staging environment since the last update and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Order update: your package with the router left the storefront this morning and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise the landlord for how they handled the outage all week. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: the printer is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly over the weekend. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times an hour ago, each attempt ending in code 502. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Heads up: the Lisbon branch reported a water leak all week. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Can someone confirm whether the coffee machine supports exporting to CSV? The docs mention it but the menu at meeting room 4 only shows PDF, and the client is asking this morning.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "I want to praise the landlord for how they handled the outage an hour ago. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the quarterly forecast. One correction: the figure of 320.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 2,450.00 from the new tenant is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "the dishwasher stopped working this morning and now shows error E-114. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the coffee machine? the landlord says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Subscription question: if I downgrade our shared calendar mid-cycle, is the difference of 49.99 credited or lost? The FAQ contradicts what the contractor told me since the last update.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter over the weekend, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: the wireless headphones is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly during the night shift. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether the smart lock supports exporting to CSV? The docs mention it but the menu at the Lisbon branch only shows PDF, and the client is asking since the last update.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through our shared calendar? the support agent says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the new tenant will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter right before the demo, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Meeting notes: we agreed the contractor owns the onboarding checklist, the draft is due in two weeks, and we revisit the budget once the numbers from the staging environment arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. my neighbour will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. my manager will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Please schedule a technician for our shared calendar at the north plant. It powers on but exit status 3 appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "I was charged 320.00 twice for the printer during the night shift. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "I was charged 89.00 twice for my laptop right before the demo. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the onboarding checklist. One correction: the figure of 212.40 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter all week, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the invoice tool? my manager says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Can someone confirm whether our shared calendar supports exporting to CSV? The docs mention it but the menu at the storefront only shows PDF, and the client is asking last Tuesday.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 7.20 from my manager is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times over the weekend, each attempt ending in a blank screen. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 1,180.00 from a colleague is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Can someone confirm whether the router supports exporting to CSV? The docs mention it but the menu at the north plant only shows PDF, and the client is asking during the night shift.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 49.99 from a colleague is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Can someone confirm whether the subscription supports exporting to CSV? The docs mention it but the menu at the north plant only shows PDF, and the client is asking for the third time this month.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter this morning, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise the finance team for how they handled the outage during the night shift. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I was charged 49.99 twice for the coffee machine last Tuesday. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the delivery service? the delivery driver says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Quick note: my neighbour asked to move the discussion about the roadmap review to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the Lisbon branch is cancelled for the third time this month. Rebooking is free until midnight; after that a change fee of 89.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Review: disappointed with our billing portal. It looked fine out of the box but failed with error E-114 on the second day, and support has not replied over the weekend.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times right before the demo, each attempt ending in code 502. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "I want to praise the delivery driver for how they handled the outage right before the demo. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Reminder that the invoice for 7.20 from the finance team is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "I want to praise my neighbour for how they handled the outage this morning. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the delivery service mid-cycle, is the difference of 49.99 credited or lost? The FAQ contradicts what the new tenant told me since the last update.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the booking system mid-cycle, is the difference of 89.00 credited or lost? The FAQ contradicts what the support agent told me right before the demo.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter for the third time this month, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, warehouse B: at 06:40 the sensor on line 2 reported ERR_TIMEOUT. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Review: the subscription is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly over the weekend. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the Lisbon branch is cancelled all week. Rebooking is free until midnight; after that a change fee of 2,450.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the subscription? the contractor says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "the mobile app stopped working for the third time this month and now shows code 502. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the quarterly forecast. One correction: the figure of 7.20 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Heads up: the Lisbon branch reported a water leak this morning. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Can someone confirm whether our shared calendar supports exporting to CSV? The docs mention it but the menu at the north plant only shows PDF, and the client is asking since the last update.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the audit findings. One correction: the figure of 49.99 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the dishwasher mid-cycle, is the difference of 16.75 credited or lost? The FAQ contradicts what a colleague told me an hour ago.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Please schedule a technician for the router at meeting room 4. It powers on but checksum mismatch appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Meeting notes: we agreed our supplier owns the training budget, the draft is due in two weeks, and we revisit the budget once the numbers from warehouse B arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise our supplier for how they handled the outage for the third time this month. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise the landlord for how they handled the outage during the night shift. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the thermostat mid-cycle, is the difference of 320.00 credited or lost? The FAQ contradicts what my neighbour told me since the last update.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Can someone confirm whether our shared calendar supports exporting to CSV? The docs mention it but the menu at the loading dock only shows PDF, and the client is asking for the third time this month.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: disappointed with the wireless headphones. It looked fine out of the box but failed with ERR_TIMEOUT on the second day, and support has not replied last Tuesday.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "I was charged 49.99 twice for the thermostat last Tuesday. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Can someone confirm whether the router supports exporting to CSV? The docs mention it but the menu at the north plant only shows PDF, and the client is asking since the last update.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the router? the contractor says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter over the weekend, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "the mobile app stopped working this morning and now shows checksum mismatch. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Review: disappointed with the printer. It looked fine out of the box but failed with an authentication loop on the second day, and support has not replied all week.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Order update: your package with the thermostat left the north plant all week and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Please schedule a technician for the mobile app at the staging environment. It powers on but code 502 appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times for the third time this month, each attempt ending in checksum mismatch. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the thermostat mid-cycle, is the difference of 16.75 credited or lost? The FAQ contradicts what the contractor told me an hour ago.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the support agent will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Subscription question: if I downgrade our shared calendar mid-cycle, is the difference of 89.00 credited or lost? The FAQ contradicts what my neighbour told me for the third time this month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the vendor contract. One correction: the figure of 320.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Please schedule a technician for the booking system at meeting room 4. It powers on but code 502 appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Heads up: the downtown office reported a water leak this morning. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Review: the invoice tool is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly for the third time this month. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, the staging environment: at 06:40 the sensor on line 2 reported code 502. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Please schedule a technician for the coffee machine at warehouse B. It powers on but error E-114 appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with the invoice tool left the staging environment this morning and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from meeting room 4 is cancelled last Tuesday. Rebooking is free until midnight; after that a change fee of 89.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "I want to praise our supplier for how they handled the outage since the last update. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I was charged 320.00 twice for the dishwasher last Tuesday. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the delivery service mid-cycle, is the difference of 89.00 credited or lost? The FAQ contradicts what the landlord told me this morning.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 49.99 from the landlord is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with the printer left meeting room 4 for the third time this month and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Heads up: the Lisbon branch reported a water leak right before the demo. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the printer? the delivery driver says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Order update: your package with the coffee machine left the loading dock during the night shift and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether the router supports exporting to CSV? The docs mention it but the menu at warehouse B only shows PDF, and the client is asking an hour ago.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 2,450.00 from my neighbour is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from meeting room 4 is cancelled since the last update. Rebooking is free until midnight; after that a change fee of 2,450.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the contractor will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: the delivery service is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly an hour ago. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Reminder that the invoice for 89.00 from the finance team is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the booking system mid-cycle, is the difference of 49.99 credited or lost? The FAQ contradicts what my neighbour told me this morning.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 89.00 from the finance team is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Quick note: the contractor asked to move the discussion about the quarterly forecast to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the onboarding checklist. One correction: the figure of 320.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: the booking system is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly since the last update. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I was charged 2,450.00 twice for the smart lock last Tuesday. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter all week, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise my neighbour for how they handled the outage all week. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I was charged 2,450.00 twice for the printer for the third time this month. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "my laptop stopped working an hour ago and now shows a spinning wheel. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the staging environment is cancelled an hour ago. Rebooking is free until midnight; after that a change fee of 89.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Heads up: the staging environment reported a water leak for the third time this month. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the coffee machine? the finance team says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Incident report, the downtown office: at 06:40 the sensor on line 2 reported ERR_TIMEOUT. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Please schedule a technician for the printer at the staging environment. It powers on but ERR_TIMEOUT appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with the booking system left warehouse B last Tuesday and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: disappointed with the delivery service. It looked fine out of the box but failed with a spinning wheel on the second day, and support has not replied an hour ago.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "the smart lock stopped working this morning and now shows an authentication loop. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the invoice tool? the support agent says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Quick note: the support agent asked to move the discussion about the migration plan to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. my neighbour will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Reminder that the invoice for 16.75 from the support agent is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Incident report, the storefront: at 06:40 the sensor on line 2 reported ERR_TIMEOUT. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the smart lock mid-cycle, is the difference of 7.20 credited or lost? The FAQ contradicts what the contractor told me this morning.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the north plant is cancelled for the third time this month. Rebooking is free until midnight; after that a change fee of 320.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with our shared calendar left the Lisbon branch last Tuesday and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: disappointed with the smart lock. It looked fine out of the box but failed with error E-114 on the second day, and support has not replied during the night shift.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter for the third time this month, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Please schedule a technician for the printer at meeting room 4. It powers on but an authentication loop appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the coffee machine? my neighbour says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "my laptop stopped working since the last update and now shows ERR_TIMEOUT. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Meeting notes: we agreed the finance team owns the training budget, the draft is due in two weeks, and we revisit the budget once the numbers from warehouse B arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Reminder that the invoice for 16.75 from the contractor is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Review: disappointed with the thermostat. It looked fine out of the box but failed with exit status 3 on the second day, and support has not replied over the weekend.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter an hour ago, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise the support agent for how they handled the outage all week. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the storefront is cancelled right before the demo. Rebooking is free until midnight; after that a change fee of 16.75 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. my neighbour will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether the coffee machine supports exporting to CSV? The docs mention it but the menu at the staging environment only shows PDF, and the client is asking for the third time this month.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Meeting notes: we agreed the finance team owns the audit findings, the draft is due in two weeks, and we revisit the budget once the numbers from warehouse B arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Order update: your package with the printer left the north plant right before the demo and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the vendor contract. One correction: the figure of 2,450.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "I was charged 7.20 twice for the thermostat all week. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "I want to praise the contractor for how they handled the outage this morning. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the coffee machine mid-cycle, is the difference of 320.00 credited or lost? The FAQ contradicts what the support agent told me right before the demo.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Incident report, the loading dock: at 06:40 the sensor on line 2 reported exit status 3. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times an hour ago, each attempt ending in an authentication loop. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. my manager will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the north plant is cancelled right before the demo. Rebooking is free until midnight; after that a change fee of 212.40 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Review: the printer is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly right before the demo. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. a colleague will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. a colleague will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the migration plan. One correction: the figure of 89.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: the wireless headphones is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly this morning. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the wireless headphones? my manager says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: our billing portal is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly over the weekend. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Order update: your package with the router left meeting room 4 right before the demo and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise a colleague for how they handled the outage all week. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the finance team will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Please schedule a technician for the smart lock at the storefront. It powers on but ERR_TIMEOUT appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "the subscription stopped working last Tuesday and now shows a blank screen. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Review: our billing portal is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly right before the demo. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Quick note: our supplier asked to move the discussion about the quarterly forecast to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter this morning, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: disappointed with the coffee machine. It looked fine out of the box but failed with checksum mismatch on the second day, and support has not replied during the night shift.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Heads up: warehouse B reported a water leak since the last update. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "the dishwasher stopped working all week and now shows ERR_TIMEOUT. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with the thermostat left the loading dock since the last update and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, the downtown office: at 06:40 the sensor on line 2 reported ERR_TIMEOUT. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the loading dock is cancelled over the weekend. Rebooking is free until midnight; after that a change fee of 7.20 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Quick note: our supplier asked to move the discussion about the onboarding checklist to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. our supplier will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Order update: your package with our shared calendar left the staging environment right before the demo and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Quick note: the support agent asked to move the discussion about the release schedule to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the mobile app mid-cycle, is the difference of 1,180.00 credited or lost? The FAQ contradicts what a colleague told me right before the demo.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the loading dock is cancelled right before the demo. Rebooking is free until midnight; after that a change fee of 7.20 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through our billing portal? the finance team says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Incident report, the downtown office: at 06:40 the sensor on line 2 reported exit status 3. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "I was charged 89.00 twice for the smart lock last Tuesday. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Please schedule a technician for the booking system at warehouse B. It powers on but checksum mismatch appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the dishwasher? the support agent says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Incident report, the loading dock: at 06:40 the sensor on line 2 reported an authentication loop. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Please schedule a technician for the mobile app at warehouse B. It powers on but a blank screen appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from warehouse B is cancelled this morning. Rebooking is free until midnight; after that a change fee of 2,450.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "the printer stopped working an hour ago and now shows error E-114. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the loading dock is cancelled this morning. Rebooking is free until midnight; after that a change fee of 89.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Reminder that the invoice for 212.40 from my manager is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Review: disappointed with the subscription. It looked fine out of the box but failed with an authentication loop on the second day, and support has not replied an hour ago.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Can someone confirm whether the delivery service supports exporting to CSV? The docs mention it but the menu at meeting room 4 only shows PDF, and the client is asking since the last update.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the booking system? my manager says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the dishwasher mid-cycle, is the difference of 89.00 credited or lost? The FAQ contradicts what a colleague told me last Tuesday.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times during the night shift, each attempt ending in a blank screen. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Please schedule a technician for the subscription at the Lisbon branch. It powers on but a blank screen appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times all week, each attempt ending in ERR_TIMEOUT. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: disappointed with the wireless headphones. It looked fine out of the box but failed with an authentication loop on the second day, and support has not replied an hour ago.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter since the last update, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Reminder that the invoice for 1,180.00 from my neighbour is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times since the last update, each attempt ending in ERR_TIMEOUT. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "I want to praise the delivery driver for how they handled the outage for the third time this month. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Subscription question: if I downgrade my laptop mid-cycle, is the difference of 212.40 credited or lost? The FAQ contradicts what a colleague told me since the last update.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times during the night shift, each attempt ending in a blank screen. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Please schedule a technician for my laptop at warehouse B. It powers on but ERR_TIMEOUT appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Meeting notes: we agreed my manager owns the audit findings, the draft is due in two weeks, and we revisit the budget once the numbers from the storefront arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I was charged 49.99 twice for the coffee machine right before the demo. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Can someone confirm whether our shared calendar supports exporting to CSV? The docs mention it but the menu at meeting room 4 only shows PDF, and the client is asking right before the demo.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter over the weekend, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, the north plant: at 06:40 the sensor on line 2 reported error E-114. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "the wireless headphones stopped working for the third time this month and now shows an authentication loop. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Meeting notes: we agreed the finance team owns the vendor contract, the draft is due in two weeks, and we revisit the budget once the numbers from the Lisbon branch arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter this morning, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Order update: your package with the smart lock left meeting room 4 over the weekend and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the wireless headphones mid-cycle, is the difference of 49.99 credited or lost? The FAQ contradicts what our supplier told me this morning.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through our shared calendar? the landlord says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from warehouse B is cancelled right before the demo. Rebooking is free until midnight; after that a change fee of 2,450.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the thermostat mid-cycle, is the difference of 7.20 credited or lost? The FAQ contradicts what the delivery driver told me an hour ago.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: disappointed with the printer. It looked fine out of the box but failed with ERR_TIMEOUT on the second day, and support has not replied last Tuesday.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Incident report, the staging environment: at 06:40 the sensor on line 2 reported error E-114. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Incident report, the storefront: at 06:40 the sensor on line 2 reported a blank screen. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Meeting notes: we agreed the new tenant owns the roadmap review, the draft is due in two weeks, and we revisit the budget once the numbers from the Lisbon branch arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter an hour ago, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I was charged 212.40 twice for the printer right before the demo. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter last Tuesday, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Please schedule a technician for the delivery service at the loading dock. It powers on but checksum mismatch appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "I want to praise the finance team for how they handled the outage for the third time this month. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, warehouse B: at 06:40 the sensor on line 2 reported a spinning wheel. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the router? our supplier says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "I was charged 1,180.00 twice for our shared calendar right before the demo. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "I was charged 320.00 twice for our shared calendar for the third time this month. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Can someone confirm whether our billing portal supports exporting to CSV? The docs mention it but the menu at the storefront only shows PDF, and the client is asking last Tuesday.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Please schedule a technician for the dishwasher at the storefront. It powers on but error E-114 appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the router mid-cycle, is the difference of 7.20 credited or lost? The FAQ contradicts what my neighbour told me all week.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Can someone confirm whether the mobile app supports exporting to CSV? The docs mention it but the menu at the Lisbon branch only shows PDF, and the client is asking all week.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Meeting notes: we agreed the delivery driver owns the release schedule, the draft is due in two weeks, and we revisit the budget once the numbers from the north plant arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Order update: your package with the printer left the Lisbon branch for the third time this month and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, the Lisbon branch: at 06:40 the sensor on line 2 reported checksum mismatch. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Heads up: the loading dock reported a water leak for the third time this month. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "I want to praise the finance team for how they handled the outage for the third time this month. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise our supplier for how they handled the outage right before the demo. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the release schedule. One correction: the figure of 2,450.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "I want to praise my neighbour for how they handled the outage this morning. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: disappointed with the dishwasher. It looked fine out of the box but failed with a spinning wheel on the second day, and support has not replied this morning.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Subscription question: if I downgrade our billing portal mid-cycle, is the difference of 212.40 credited or lost? The FAQ contradicts what the landlord told me for the third time this month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the release schedule. One correction: the figure of 2,450.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the release schedule. One correction: the figure of 320.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Meeting notes: we agreed my neighbour owns the release schedule, the draft is due in two weeks, and we revisit the budget once the numbers from the staging environment arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times an hour ago, each attempt ending in exit status 3. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "I want to praise the support agent for how they handled the outage right before the demo. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Meeting notes: we agreed our supplier owns the roadmap review, the draft is due in two weeks, and we revisit the budget once the numbers from the staging environment arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the delivery service? the contractor says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the delivery service mid-cycle, is the difference of 320.00 credited or lost? The FAQ contradicts what a colleague told me an hour ago.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Quick note: the contractor asked to move the discussion about the vendor contract to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise my manager for how they handled the outage for the third time this month. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I was charged 7.20 twice for the invoice tool all week. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the training budget. One correction: the figure of 212.40 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "I want to praise the new tenant for how they handled the outage right before the demo. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Incident report, the north plant: at 06:40 the sensor on line 2 reported a blank screen. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times for the third time this month, each attempt ending in code 502. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Reminder that the invoice for 1,180.00 from my neighbour is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "the subscription stopped working right before the demo and now shows a spinning wheel. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "I want to praise the landlord for how they handled the outage all week. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from warehouse B is cancelled an hour ago. Rebooking is free until midnight; after that a change fee of 7.20 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the migration plan. One correction: the figure of 89.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Review: the printer is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly for the third time this month. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Heads up: the storefront reported a water leak last Tuesday. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from warehouse B is cancelled over the weekend. Rebooking is free until midnight; after that a change fee of 1,180.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "the mobile app stopped working this morning and now shows code 502. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Can someone confirm whether the dishwasher supports exporting to CSV? The docs mention it but the menu at meeting room 4 only shows PDF, and the client is asking an hour ago.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Meeting notes: we agreed my neighbour owns the roadmap review, the draft is due in two weeks, and we revisit the budget once the numbers from the staging environment arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the finance team will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Subscription question: if I downgrade the dishwasher mid-cycle, is the difference of 89.00 credited or lost? The FAQ contradicts what the support agent told me last Tuesday.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Quick note: the contractor asked to move the discussion about the vendor contract to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times since the last update, each attempt ending in a spinning wheel. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the thermostat? my neighbour says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Heads up: the north plant reported a water leak since the last update. Facilities is on it; keep the server racks on the east wall powered down until they give the all-clear.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 3
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the mobile app? the finance team says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the contractor will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether our shared calendar supports exporting to CSV? The docs mention it but the menu at meeting room 4 only shows PDF, and the client is asking since the last update.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from meeting room 4 is cancelled right before the demo. Rebooking is free until midnight; after that a change fee of 2,450.00 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Order update: your package with the router left the storefront over the weekend and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the migration plan. One correction: the figure of 16.75 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Incident report, the downtown office: at 06:40 the sensor on line 2 reported a blank screen. The shift lead paused the belt, cleared the jam, and production resumed at 07:05. No injuries.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "my laptop stopped working since the last update and now shows error E-114. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "I was charged 49.99 twice for our shared calendar over the weekend. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Order update: your package with the subscription left the storefront last Tuesday and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times during the night shift, each attempt ending in an authentication loop. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "I was charged 7.20 twice for the mobile app all week. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Review: the router is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly right before the demo. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the roadmap review. One correction: the figure of 2,450.00 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the mobile app? my neighbour says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the north plant is cancelled all week. Rebooking is free until midnight; after that a change fee of 16.75 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Review: disappointed with the subscription. It looked fine out of the box but failed with an authentication loop on the second day, and support has not replied an hour ago.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Can someone confirm whether the invoice tool supports exporting to CSV? The docs mention it but the menu at meeting room 4 only shows PDF, and the client is asking since the last update.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Quick note: a colleague asked to move the discussion about the vendor contract to Thursday. No action needed from your side yet, just keep the slot free.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the Lisbon branch is cancelled for the third time this month. Rebooking is free until midnight; after that a change fee of 16.75 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Log excerpt: job 4821 retried three times during the night shift, each attempt ending in ERR_TIMEOUT. The queue is draining normally otherwise. Suggest raising the timeout before we page anyone.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Order update: your package with the invoice tool left warehouse B last Tuesday and should arrive within three working days. Track it with the code in your confirmation email.",
+   {
+    "complaint": false,
+    "category": "operations",
+    "urgency": 0
+   }
+  ],
+  [
+   "my laptop stopped working all week and now shows checksum mismatch. I already restarted it twice and checked the cable. What else can I try before you send a replacement?",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Reminder that the invoice for 49.99 from the finance team is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter an hour ago, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether the subscription supports exporting to CSV? The docs mention it but the menu at warehouse B only shows PDF, and the client is asking all week.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Thanks for the quick turnaround on the onboarding checklist. One correction: the figure of 212.40 on page two is last year's; this year's is in the shared sheet, tab three.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 1
+   }
+  ],
+  [
+   "I was charged 2,450.00 twice for the invoice tool during the night shift. Please refund the duplicate and confirm by email, or I will have to cancel the account.",
+   {
+    "complaint": true,
+    "category": "billing",
+    "urgency": 3
+   }
+  ],
+  [
+   "Meeting notes: we agreed the landlord owns the roadmap review, the draft is due in two weeks, and we revisit the budget once the numbers from warehouse B arrive.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter an hour ago, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: disappointed with the coffee machine. It looked fine out of the box but failed with exit status 3 on the second day, and support has not replied last Tuesday.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "The recipe calls for two eggs, a cup of flour, and whatever soft fruit you have. Fold gently, rest the batter all week, and do not overheat the pan or it burns fast.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether the smart lock supports exporting to CSV? The docs mention it but the menu at the north plant only shows PDF, and the client is asking last Tuesday.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Can someone confirm whether my laptop supports exporting to CSV? The docs mention it but the menu at the north plant only shows PDF, and the client is asking all week.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Travel note: the 09:15 connection from the storefront is cancelled an hour ago. Rebooking is free until midnight; after that a change fee of 16.75 applies.",
+   {
+    "complaint": true,
+    "category": "operations",
+    "urgency": 2
+   }
+  ],
+  [
+   "Please schedule a technician for the smart lock at the Lisbon branch. It powers on but code 502 appears after a minute, and the warranty runs out at the end of the month.",
+   {
+    "complaint": true,
+    "category": "technical",
+    "urgency": 2
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through our shared calendar? my manager says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the support agent will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Match recap: the home side went ahead early, lost the thread after the break, and only a save in stoppage time kept the score at 2-1. the support agent will be relieved.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Policy question: does the new expense rule cover meals during travel booked through the dishwasher? our supplier says yes, the handbook says ask finance, and finance has not answered.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 1
+   }
+  ],
+  [
+   "I want to praise the new tenant for how they handled the outage this morning. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Reminder that the invoice for 49.99 from the delivery driver is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "Can someone confirm whether the router supports exporting to CSV? The docs mention it but the menu at meeting room 4 only shows PDF, and the client is asking this morning.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "Can someone confirm whether the coffee machine supports exporting to CSV? The docs mention it but the menu at the downtown office only shows PDF, and the client is asking last Tuesday.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "I want to praise our supplier for how they handled the outage an hour ago. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Can someone confirm whether the smart lock supports exporting to CSV? The docs mention it but the menu at the storefront only shows PDF, and the client is asking last Tuesday.",
+   {
+    "complaint": false,
+    "category": "technical",
+    "urgency": 1
+   }
+  ],
+  [
+   "I want to praise the finance team for how they handled the outage since the last update. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Review: the coffee machine is honestly better than I expected. Setup took five minutes, the manual was clear, and it has run quietly during the night shift. Four stars only because the app is slow.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "Reminder that the invoice for 7.20 from the delivery driver is due Friday. Approve it in the portal or tell me to push it to next month.",
+   {
+    "complaint": false,
+    "category": "billing",
+    "urgency": 2
+   }
+  ],
+  [
+   "I want to praise the delivery driver for how they handled the outage since the last update. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ],
+  [
+   "I want to praise the support agent for how they handled the outage for the third time this month. Clear updates every twenty minutes and a full writeup the next day. That is how it should be done.",
+   {
+    "complaint": false,
+    "category": "other",
+    "urgency": 0
+   }
+  ]
+ ]
+}

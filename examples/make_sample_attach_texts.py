@@ -1,13 +1,17 @@
-"""Regenerates examples/sample_attach_texts.txt, the synthetic corpus the README's attach
-walkthrough uses: one text per line, 1,000 lines, deterministic under the fixed seed.
+"""Regenerates the two synthetic sample files the README's attach walkthrough uses:
 
-Every line is template-generated here, so nothing in the file comes from any real person,
-customer or dataset. It exists so `vegaml.attach` can be tried before you collect your own
-domain text, which is what you should actually attach with: the port tunes to the corpus it
-is fitted on, and this one is deliberately generic.
+* examples/sample_attach_texts.txt: the alignment corpus, one text per line, 1,000 lines;
+* examples/sample_calibrate.json: the question sheet plus 600 labelled examples for
+  `vegaml.calibrate`, labels taken from the template each text was generated from.
+
+Everything is template-generated here, so nothing comes from any real person, customer or
+dataset, and every label is ground truth by construction. They exist so attach and calibrate
+can be tried before you collect your own domain text and labels, which is what a production
+port should actually be fitted and calibrated on.
 
     python examples/make_sample_attach_texts.py
 """
+import json
 import os
 import random
 
@@ -73,6 +77,47 @@ TEMPLATES = [
     "credited or lost? The FAQ contradicts what {pers} told me {time}.",
 ]
 
+# ground truth per template above, in the SAME order: is it a complaint, which area, urgency
+LABELS = [
+    {"complaint": True,  "category": "billing",    "urgency": 3},   # double charge
+    {"complaint": True,  "category": "technical",  "urgency": 2},   # device shows an error
+    {"complaint": False, "category": "other",      "urgency": 0},   # discussion moved
+    {"complaint": False, "category": "other",      "urgency": 0},   # positive review
+    {"complaint": True,  "category": "technical",  "urgency": 1},   # negative review
+    {"complaint": True,  "category": "operations", "urgency": 2},   # incident report
+    {"complaint": False, "category": "billing",    "urgency": 2},   # invoice due
+    {"complaint": False, "category": "other",      "urgency": 0},   # meeting notes
+    {"complaint": False, "category": "technical",  "urgency": 1},   # CSV export question
+    {"complaint": True,  "category": "operations", "urgency": 3},   # water leak
+    {"complaint": False, "category": "operations", "urgency": 0},   # order update
+    {"complaint": False, "category": "other",      "urgency": 0},   # praise
+    {"complaint": False, "category": "other",      "urgency": 0},   # recipe
+    {"complaint": False, "category": "other",      "urgency": 0},   # match recap
+    {"complaint": True,  "category": "operations", "urgency": 2},   # cancelled connection
+    {"complaint": False, "category": "billing",    "urgency": 1},   # expense policy
+    {"complaint": True,  "category": "technical",  "urgency": 1},   # retrying job
+    {"complaint": True,  "category": "technical",  "urgency": 2},   # technician request
+    {"complaint": False, "category": "other",      "urgency": 1},   # figure correction
+    {"complaint": False, "category": "billing",    "urgency": 1},   # downgrade question
+]
+
+# the question sheet the labels answer; exactly what vegaml.calibrate takes
+QUESTIONS = {
+    "complaint": {"type": "boolean",
+                  "instructions": "Does the text describe a problem, fault or complaint?"},
+    "category": {"type": "choice",
+                 "instructions": "Which area does this text belong to?",
+                 "criteria": {"billing": "money, invoices, charges or subscriptions",
+                              "technical": "devices, software or technical faults",
+                              "operations": "logistics, facilities, incidents or travel",
+                              "other": "anything else"}},
+    "urgency": {"type": "score",
+                "instructions": "How urgent is the text?",
+                "criteria": ["no urgency at all", "slightly time-sensitive",
+                             "moderately urgent", "clearly urgent",
+                             "critical, immediate action needed"]},
+}
+
 LONG_OPENERS = [
     "Full incident timeline, for the record.",
     "Background for whoever picks this ticket up next.",
@@ -81,12 +126,22 @@ LONG_OPENERS = [
 ]
 
 
+def fill(rng, i):
+    return TEMPLATES[i].format(prod=rng.choice(PRODUCTS), pers=rng.choice(PEOPLE),
+                               place=rng.choice(PLACES), time=rng.choice(TIMES),
+                               amt=rng.choice(AMOUNTS), err=rng.choice(ERRORS),
+                               topic=rng.choice(TOPICS))
+
+
 def make_text(rng):
-    t = rng.choice(TEMPLATES)
-    return t.format(prod=rng.choice(PRODUCTS), pers=rng.choice(PEOPLE),
-                    place=rng.choice(PLACES), time=rng.choice(TIMES),
-                    amt=rng.choice(AMOUNTS), err=rng.choice(ERRORS),
-                    topic=rng.choice(TOPICS))
+    return fill(rng, rng.randrange(len(TEMPLATES)))
+
+
+def make_example(rng):
+    """One labelled calibration example, [state, labels]: the labels come from the template
+    the text was generated from, so they are correct by construction."""
+    i = rng.randrange(len(TEMPLATES))
+    return [fill(rng, i), dict(LABELS[i])]
 
 
 def make_long(rng):
@@ -107,6 +162,15 @@ def main():
     with open(out, "w") as f:
         f.write("\n".join(texts) + "\n")
     print("wrote %s (%d texts, %d of them long)" % (out, len(texts), n_long))
+
+    # labelled examples for calibrate, generated under their own seed so they are not the
+    # alignment lines over again (same distribution is the point; same strings is not)
+    rng = random.Random(31)
+    cal = {"questions": QUESTIONS, "examples": [make_example(rng) for _ in range(600)]}
+    out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sample_calibrate.json")
+    with open(out, "w") as f:
+        json.dump(cal, f, indent=1)
+    print("wrote %s (%d labelled examples, 3 labels each)" % (out, len(cal["examples"])))
 
 
 if __name__ == "__main__":
