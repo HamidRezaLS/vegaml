@@ -44,6 +44,17 @@ def backbone_hub_id(name: Optional[str]) -> Optional[str]:
     return name
 
 
+def looks_like_hub_id(name: Optional[str]) -> bool:
+    """Whether `name` is shaped like a repository id (``owner/model``) rather than a filesystem
+    path. A training machine stores its backbone as an absolute path ("/kaggle/input/..."), which
+    must never be mistaken for a repository; a repository id has exactly one slash and no path
+    anatomy around it."""
+    import re
+
+    return bool(name) and name.count("/") == 1 and not name.startswith((".", "/", "~")) \
+        and re.fullmatch(r"[\w.\-]+/[\w.\-]+", name) is not None
+
+
 #: Where a token is read from when the caller passes none, in that order. `HF_TOKEN` is the name
 #: the Hugging Face CLI and the Hub libraries use; the other two are older spellings still in use.
 TOKEN_ENV = ("HF_TOKEN", "HUGGING_FACE_HUB_TOKEN", "HUGGINGFACEHUB_API_TOKEN")

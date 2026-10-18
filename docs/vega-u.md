@@ -144,3 +144,8 @@ each run's raw per-source detail ships as `eval_report.json` in its reader direc
   `vega_config.json` is a symlink into the blob store; the refit now replaces the link with
   a real file instead of writing through it, so the content-addressed blob keeps its bytes
   and the refit persists for later `load()` calls on the same machine.
+- **0.12.2**: an attached dir loads by its reader's full repository id. `attach` stores the
+  id it was given ("HuggingFaceTB/SmolLM2-1.7B-Instruct") in the config's `backbone` key, and
+  the loader now uses it when it is shaped like a repository id; before, it fell through to
+  the bare `backbone_name`, which drops the namespace and 401s for any reader outside the
+  shipped ones. Dirs attached under 0.12.0 and 0.12.1 load correctly with no re-attach.

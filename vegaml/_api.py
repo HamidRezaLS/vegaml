@@ -63,6 +63,7 @@ class Vega:
         # training machine used, so it is only usable if it happens to exist here; otherwise fall
         # back to cfg["backbone_name"], the Hub id, which is what makes a downloaded checkpoint
         # work without the caller naming a backbone.
+        from .hub import backbone_hub_id, looks_like_hub_id
         local = os.path.join(model_dir, "backbone")
         if backbone is not None:
             bb = backbone
@@ -70,10 +71,14 @@ class Vega:
             bb = local
         elif os.path.isdir(self.cfg.get("backbone", "")):
             bb = self.cfg["backbone"]
+        elif looks_like_hub_id(self.cfg.get("backbone", "")):
+            # an attached dir stores the full repository id its port was fitted for
+            # ("HuggingFaceTB/SmolLM2-1.7B-Instruct"); the bare backbone_name below would drop
+            # the namespace, which only resolves for the shipped readers
+            bb = self.cfg["backbone"]
         elif self.cfg.get("backbone_name"):
             # the config stores the bare reader name ("Qwen3.5-0.8B"); downloading it needs
             # the owning namespace, which the hub module knows for every shipped reader
-            from .hub import backbone_hub_id
             bb = backbone_hub_id(self.cfg["backbone_name"])
         else:
             bb = self.cfg["backbone"]

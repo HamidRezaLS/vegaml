@@ -103,6 +103,57 @@ def test_api_wraps_on_port_key(tmp_path, monkeypatch):
     assert v.engine.engine.adapter_mode == "off"
 
 
+def test_api_loads_an_attached_reader_by_its_full_hub_id(tmp_path, monkeypatch):
+    """An attached dir stores the full repository id in cfg["backbone"]; the loader must use it
+    rather than fall through to the bare backbone_name, which drops the owning namespace and
+    401s on the Hub for any reader outside the shipped ones."""
+    from safetensors.torch import save_file
+
+    cfg, _ = _checkpoint(tmp_path)
+    cfg.update(
+        {"d_model": D_SHARED, "feature_layers": [1, 3], "option_layers": [3],
+         "max_len": 64, "opt_max_tokens": 16,
+         "backbone": "HuggingFaceTB/SmolLM2-1.7B-Instruct",
+         "backbone_name": "SmolLM2-1.7B-Instruct", **CFG}
+    )
+    with open(os.path.join(tmp_path, "vega_config.json"), "w") as f:
+        json.dump(cfg, f)
+    torch.manual_seed(1)
+    save_file(VegaEngine(D_SHARED, LF, LO, CFG).state_dict(),
+              os.path.join(tmp_path, "engine.safetensors"))
+
+    from vegaml import _api
+
+    class FakePerception:
+        feature_layers = [1, 3]
+
+    monkeypatch.setattr(_api, "Perception", lambda *a, **k: FakePerception())
+    v = _api.Vega(str(tmp_path), device="cpu")
+    assert v.backbone == "HuggingFaceTB/SmolLM2-1.7B-Instruct"
+
+    # a training machine's absolute path must still fall through to backbone_name
+    cfg.update({"backbone": "/kaggle/input/qwen3.5/transformers/0.8b/1",
+                "backbone_name": "Qwen3.5-0.8B"})
+    with open(os.path.join(tmp_path, "vega_config.json"), "w") as f:
+        json.dump(cfg, f)
+    v = _api.Vega(str(tmp_path), device="cpu")
+    assert v.backbone == "Qwen/Qwen3.5-0.8B"
+
+
+def test_hub_id_shape_check():
+    from vegaml.hub import looks_like_hub_id
+
+    assert looks_like_hub_id("HuggingFaceTB/SmolLM2-1.7B-Instruct")
+    assert looks_like_hub_id("Qwen/Qwen3.5-4B")
+    assert not looks_like_hub_id("/kaggle/input/qwen3.5")       # absolute path
+    assert not looks_like_hub_id("./local/dir")                 # relative path
+    assert not looks_like_hub_id("~/models/reader")             # home path
+    assert not looks_like_hub_id("Qwen3.5-0.8B")                # bare name, no namespace
+    assert not looks_like_hub_id("a/b/c")                       # too many parts
+    assert not looks_like_hub_id("")
+    assert not looks_like_hub_id(None)
+
+
 def _universal_repo(tmp_path):
     """A downloaded universal repo: root = one reader, a sibling reader as a subfolder."""
     root_cfg = {"port": "port.safetensors", "backbone_name": "Qwen3.5-0.8B", "d_shared": 16}
