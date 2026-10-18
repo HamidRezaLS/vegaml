@@ -9,18 +9,15 @@ Typed decisions from a frozen language model and a small physics engine. You giv
 choice, a 0 to 1 score, or the probability that a statement is true. Each carries a calibrated
 probability, a conformal answer set and an explicit abstain flag.
 
-**800M or 4B parameters · 73,728-token context · images · runs on your own hardware.** No text is
-generated anywhere in the path.
+**vega-U: one 14.3M engine, any frozen reader, from 0.8B to 27B · 73,728-token context · images ·
+runs on your own hardware.** No text is generated anywhere in the path.
 
-![Where Vega comes out ahead of a hosted reference](assets/vega_benchmark_wins.png)
+![vega-U: four readers, one byte-identical engine](assets/vega_u_benchmarks.png)
 
-<sub>Every place the local model beat a hosted reference in one run on 2026-10-11, two Tesla T4s,
-3,841 decisions per system. The win list is derived from the run's own JSON by
-[`bench/make_wins_png.py`](bench/make_wins_png.py), so a row that stops being a win disappears by
-itself. The rest of the menu goes the other way and is
-[right below](#the-rest-of-the-menu). The run is
-[`notebooks/vega_benchmark_2xT4.ipynb`](notebooks/vega_benchmark_2xT4.ipynb), which you can run
-yourself on a free Kaggle session.</sub>
+<sub>The default model. Four frozen readers behind one byte-identical 14.3M engine; the readers
+marked "attached cold" were never part of the engine's training and scored highest anyway. The
+full per-source board, the method and the caveats are in [docs/vega-u.md](docs/vega-u.md); the
+classic per-size benchmarks against a hosted reference are [further down](#benchmarks).</sub>
 
 ```bash
 pip install vegaml
@@ -166,72 +163,6 @@ question using the old name is rejected with the valid types listed, rather than
 reinterpreted. Checkpoints published before the change key their conformal thresholds by the old
 name; the loader remaps them, so an older checkpoint still loads with its prediction sets intact.
 
-## Beyond the Python API
-
-Each surface is one extra; none changes the core, and [docs/](docs/index.md) covers them all.
-
-| Surface | Install | One line |
-| --- | --- | --- |
-| [CLI](docs/cli.md) | ships with `vegaml` | `vegaml "state" --boolean "churn=Threatens to leave?"`, JSONL batches on one load |
-| [HTTP](docs/http-api.md) | `vegaml[serve]` | `vegaml-serve`: POST /v1/decide returns exactly what decide() returns |
-| [MCP](docs/mcp.md) | `vegaml[mcp]` | `vegaml-mcp-server`: decide() as a tool an agent can gate on |
-| [Structured](docs/structured.md) | `vegaml[structured]` | a pydantic model as the question sheet and the validated answer |
-| [ONNX](docs/onnx.md) | `vegaml[onnx]` | export the engine, run it anywhere onnxruntime does |
-| [MLX](docs/mlx.md) | `vegaml[mlx]` | the engine on Apple silicon without torch in the process |
-| [Docker](docs/docker.md) | repo | `docker compose up`: the HTTP server as a container |
-
-Runnable starts for each live in [examples/](examples/).
-
-## Two sizes
-
-Both live in the same checkpoint repository and take the same code path. `load()` with no argument
-gives you the 0.8B, which is the default. The table at the top of this page measures both.
-
-| | 0.8B | 4B |
-|---|---|---|
-| backbone, frozen | Qwen3.5-0.8B | Qwen3.5-4B |
-| engine, trained | 14.3M params, 57 MB | 30.9M params, 124 MB |
-| task adapter | 0.84M params | 1.43M params |
-| with the task adapter | 0.763 | **0.803** |
-| soft accuracy | 0.680 | **0.725** |
-| calibration error | 0.026 | **0.019** |
-| per decision | **22 ms** | 28 ms |
-
-Measured on the `LocalLLaMA/typed-decisions` test split, 2,050 decisions, each checkpoint's own run
-of the same harness. Per workflow with the adapter, the 4B leads on five of six: apibank 96.5 against
-89.5, when2call 94.6 against 90.4, appliances 89.1 against 85.1, banking77 74.9 against 71.4, esci
-64.4 against 56.4. The 0.8B wins clinc150, 88.0 against 86.7.
-
-So the 4B is the better model and the 0.8B is the default anyway, because 22 ms against 28 ms and 57
-MB against 124 MB decides more deployments than four points of accuracy does.
-
-On the wider menu at the top of this page the gap is larger than four points: 0.717 accuracy
-against 0.556, and 0.594 chance-corrected skill against 0.388. The cost of closing it is the
-backbone, not the engine. `Qwen/Qwen3.5-4B` is 9.34 GB against 1.77 GB for the 0.8B, it takes 61
-seconds to load against 27, and it answers in 106 ms against 74. Pick the 4B when the machine has
-the room and the task has more than a handful of labels; pick the 0.8B when it does not.
-
-```python
-vegaml.load()                  # vega-U, 0.8B reader (the repo root)
-vegaml.load("4b")              # vega-U, Qwen3.5-4B reader
-vegaml.load("gemma-1b")        # vega-U, Gemma 3 1B reader
-vegaml.load("owner/some-repo") # anything else on the Hub, including the earlier
-                               # per-size checkpoints (nandakishorm/vega-08b-public-intents)
-vegaml.load("/path/on/disk")   # or a local directory
-```
-
-A private or gated repository needs a Hub token, and without one the Hub answers 401, which it
-reports identically to "no such repository". `fetch` turns that into one sentence naming which of
-the two it is and where it looked for a token. `load()` picks one up from `HF_TOKEN` in the
-environment, so nothing has to be threaded through the call; pass `token=...` to override it, or
-`token=False` to ignore the environment and fetch anonymously. It stays optional: the published
-checkpoints are public and load with no token set.
-
-```python
-vegaml.load("owner/private-repo")               # uses $HF_TOKEN if it is set
-vegaml.load("owner/private-repo", token=tok)    # or pass it explicitly
-```
-
 ## vega-U: one engine, any reader
 
 **vega-U is the default model**: `vegaml.load()` with no argument loads it with the 0.8B
@@ -281,6 +212,75 @@ The gains land where reading matters (long context 0.831 to 0.941 from the 0.8B 
 ARC 0.647 to 0.922) and saturated tasks stay flat, which is the design's claim made
 measurable. The full per-source board, the checkpoint layout, the caveats and the version
 history are in [docs/vega-u.md](docs/vega-u.md).
+
+```python
+vegaml.load()                  # vega-U, 0.8B reader (the repo root)
+vegaml.load("4b")              # vega-U, Qwen3.5-4B reader
+vegaml.load("gemma-1b")        # vega-U, Gemma 3 1B reader
+vegaml.load("owner/some-repo") # anything else on the Hub, including the earlier
+                               # per-size checkpoints (nandakishorm/vega-08b-public-intents)
+vegaml.load("/path/on/disk")   # or a local directory
+```
+
+A private or gated repository needs a Hub token, and without one the Hub answers 401, which it
+reports identically to "no such repository". `fetch` turns that into one sentence naming which of
+the two it is and where it looked for a token. `load()` picks one up from `HF_TOKEN` in the
+environment, so nothing has to be threaded through the call; pass `token=...` to override it, or
+`token=False` to ignore the environment and fetch anonymously. It stays optional: the published
+checkpoints are public and load with no token set.
+
+```python
+vegaml.load("owner/private-repo")               # uses $HF_TOKEN if it is set
+vegaml.load("owner/private-repo", token=tok)    # or pass it explicitly
+
+## Beyond the Python API
+
+Each surface is one extra; none changes the core, and [docs/](docs/index.md) covers them all.
+
+| Surface | Install | One line |
+| --- | --- | --- |
+| [CLI](docs/cli.md) | ships with `vegaml` | `vegaml "state" --boolean "churn=Threatens to leave?"`, JSONL batches on one load |
+| [HTTP](docs/http-api.md) | `vegaml[serve]` | `vegaml-serve`: POST /v1/decide returns exactly what decide() returns |
+| [MCP](docs/mcp.md) | `vegaml[mcp]` | `vegaml-mcp-server`: decide() as a tool an agent can gate on |
+| [Structured](docs/structured.md) | `vegaml[structured]` | a pydantic model as the question sheet and the validated answer |
+| [ONNX](docs/onnx.md) | `vegaml[onnx]` | export the engine, run it anywhere onnxruntime does |
+| [MLX](docs/mlx.md) | `vegaml[mlx]` | the engine on Apple silicon without torch in the process |
+| [Docker](docs/docker.md) | repo | `docker compose up`: the HTTP server as a container |
+
+Runnable starts for each live in [examples/](examples/).
+
+## The earlier checkpoints: classic vega in two sizes
+
+Before the universal line, each size was its own checkpoint married to its backbone. They remain
+fully supported and loadable by their repository id
+(`vegaml.load("nandakishorm/vega-08b-public-intents")`), take the same code path, and every number
+in the [Benchmarks](#benchmarks) section below was measured on them.
+
+| | 0.8B | 4B |
+|---|---|---|
+| backbone, frozen | Qwen3.5-0.8B | Qwen3.5-4B |
+| engine, trained | 14.3M params, 57 MB | 30.9M params, 124 MB |
+| task adapter | 0.84M params | 1.43M params |
+| with the task adapter | 0.763 | **0.803** |
+| soft accuracy | 0.680 | **0.725** |
+| calibration error | 0.026 | **0.019** |
+| per decision | **22 ms** | 28 ms |
+
+Measured on the `LocalLLaMA/typed-decisions` test split, 2,050 decisions, each checkpoint's own run
+of the same harness. Per workflow with the adapter, the 4B leads on five of six: apibank 96.5 against
+89.5, when2call 94.6 against 90.4, appliances 89.1 against 85.1, banking77 74.9 against 71.4, esci
+64.4 against 56.4. The 0.8B wins clinc150, 88.0 against 86.7.
+
+So the 4B was the better classic model and the 0.8B its default anyway, because 22 ms against 28 ms
+and 57 MB against 124 MB decides more deployments than four points of accuracy does.
+
+On the wider public menu in the [Benchmarks](#benchmarks) section the gap is larger than four points: 0.717 accuracy
+against 0.556, and 0.594 chance-corrected skill against 0.388. The cost of closing it is the
+backbone, not the engine. `Qwen/Qwen3.5-4B` is 9.34 GB against 1.77 GB for the 0.8B, it takes 61
+seconds to load against 27, and it answers in 106 ms against 74. Pick the 4B when the machine has
+the room and the task has more than a handful of labels; pick the 0.8B when it does not.
+
+```
 
 ## Fine-tuning
 
@@ -378,8 +378,11 @@ Nothing is tuned on evaluation data, and the hosted reference is called live ove
 
 ### Where it comes out ahead
 
-The figure at the top of this page, as text. Every row of this run where a local model beat the
-hosted one, and nothing else.
+![Where classic vega comes out ahead of a hosted reference](assets/vega_benchmark_wins.png)
+
+Every row of this run where a local model beat the hosted one, and nothing else. The win list is
+derived from the run's own JSON by [`bench/make_wins_png.py`](bench/make_wins_png.py), so a row
+that stops being a win disappears by itself.
 
 | benchmark | Vega 0.8B | Vega 4B | Jev |
 | --- | ---: | ---: | ---: |
