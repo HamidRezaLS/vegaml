@@ -55,6 +55,71 @@ print(out["answers"]["churn"]["abstain"])      # False -> the engine stands behi
 
 Both questions are answered from **one** read of the state.
 
+### Attach your own model, without retraining anything
+
+From 0.12, a base model the checkpoint ships no port for is something you attach yourself,
+locally, with `vegaml.attach`. The engine is never retrained, the reader is never
+fine-tuned, and none of the original training data is needed: the alignment is
+self-supervised. The checkpoint's own root reader generates the shared-space target for any
+text, so the port (what a port is: the vega-U section, next) is fitted from running both
+readers over the same prompts, on text you bring.
+
+```python
+import vegaml
+
+# a synthetic starter corpus ships in the repo; swap in strings from YOUR domain
+texts = [t for t in open("examples/sample_attach_texts.txt") if t.strip()]
+
+report = vegaml.attach(
+    "mistralai/Mistral-7B-Instruct-v0.3",   # any instruction-tuned causal LM
+    texts=texts,
+    out_dir="vega-u-mistral-7b",
+)
+print(report["ridge_cosines"])               # how faithfully the port landed
+
+v = vegaml.load("vega-u-mistral-7b")         # same engine, byte for byte, new eyes
+```
+
+Three steps happen under that call:
+
+1. **Anchor pass.** The 0.8B root reader reads every text under a fixed set of probe
+   questions; its features ARE the shared-space coordinates, so this writes the targets.
+   The anchor is then freed before your reader loads.
+2. **Port fit.** Your reader reads the same prompts, its features are standardized, and one
+   linear map per tapped layer is fitted in closed form (ridge, lambda picked on a holdout),
+   then refined for a few hundred steps so the frozen engine decides the same way through
+   the new port as through the anchor. Both steps are label-free.
+3. **A servable dir** is written: the unchanged engine, the new port, the extraction
+   statistics and a config `load()` reads like any shipped reader.
+
+What to bring, and what it costs:
+
+* **Texts**: 1,000+ strings from your domain is a good corpus, 100 is the floor; diverse
+  beats big. Include long records if you will read long records. More text raises the
+  reported holdout cosines, and well under ~0.8 usually means too little or too narrow.
+* **GPU memory**: enough for your reader itself in bf16, which is the whole bill. Roughly
+  2 GB per billion parameters plus a few GB of headroom: a 1B reader attaches on any 8 GB
+  card, a 7B to 9B on 24 GB, a 27B wants 80 GB or more. The anchor (0.8B) and the engine
+  (14.3M) are noise next to that. CPU and Apple silicon (MPS) work too, just slower.
+* **Time**: dominated by reading the texts through your reader, 6 probe prompts per text.
+  A 7B reader over 1,000 short texts is tens of minutes on a 24 GB GPU; the ridge and the
+  refine are minutes. `max_len=` caps prompt length if your texts are long and you want a
+  faster first fit.
+* **Labels, only for calibration.** The attached dir answers immediately but its
+  probabilities are raw until you calibrate on your own labelled examples, which beat any
+  data we could ship because they match your distribution:
+
+```python
+vegaml.calibrate("vega-u-mistral-7b", examples, questions)   # same shapes as Vega.fit
+```
+
+Roughly 500 labelled examples per question type is usable and 1,000 to 2,000 is where the
+numbers settle. The refit covers the temperature (physics-conditioned where it beats a plain
+one on a holdout), the conformal prediction-set thresholds, the abstain thresholds and the
+unbound threshold, written into the dir and applied in place. One honest caveat: a port
+fitted on your corpus is tuned to your domain, and the published benchmark numbers only
+describe the ports we ship.
+
 ### Devices
 
 With no `device` argument, loading prefers CUDA, then Apple silicon MPS when PyTorch reports it
@@ -162,71 +227,6 @@ Three, named in every question's `type` field:
 question using the old name is rejected with the valid types listed, rather than silently
 reinterpreted. Checkpoints published before the change key their conformal thresholds by the old
 name; the loader remaps them, so an older checkpoint still loads with its prediction sets intact.
-
-## Attach your own model, without retraining anything
-
-From 0.12, a base model the checkpoint ships no port for is something you attach yourself,
-locally, with `vegaml.attach`. The engine is never retrained, the reader is never
-fine-tuned, and none of the original training data is needed: the alignment is
-self-supervised. The checkpoint's own root reader generates the shared-space target for any
-text, so the port (what a port is: the vega-U section, next) is fitted from running both
-readers over the same prompts, on text you bring.
-
-```python
-import vegaml
-
-# a synthetic starter corpus ships in the repo; swap in strings from YOUR domain
-texts = [t for t in open("examples/sample_attach_texts.txt") if t.strip()]
-
-report = vegaml.attach(
-    "mistralai/Mistral-7B-Instruct-v0.3",   # any instruction-tuned causal LM
-    texts=texts,
-    out_dir="vega-u-mistral-7b",
-)
-print(report["ridge_cosines"])               # how faithfully the port landed
-
-v = vegaml.load("vega-u-mistral-7b")         # same engine, byte for byte, new eyes
-```
-
-Three steps happen under that call:
-
-1. **Anchor pass.** The 0.8B root reader reads every text under a fixed set of probe
-   questions; its features ARE the shared-space coordinates, so this writes the targets.
-   The anchor is then freed before your reader loads.
-2. **Port fit.** Your reader reads the same prompts, its features are standardized, and one
-   linear map per tapped layer is fitted in closed form (ridge, lambda picked on a holdout),
-   then refined for a few hundred steps so the frozen engine decides the same way through
-   the new port as through the anchor. Both steps are label-free.
-3. **A servable dir** is written: the unchanged engine, the new port, the extraction
-   statistics and a config `load()` reads like any shipped reader.
-
-What to bring, and what it costs:
-
-* **Texts**: 1,000+ strings from your domain is a good corpus, 100 is the floor; diverse
-  beats big. Include long records if you will read long records. More text raises the
-  reported holdout cosines, and well under ~0.8 usually means too little or too narrow.
-* **GPU memory**: enough for your reader itself in bf16, which is the whole bill. Roughly
-  2 GB per billion parameters plus a few GB of headroom: a 1B reader attaches on any 8 GB
-  card, a 7B to 9B on 24 GB, a 27B wants 80 GB or more. The anchor (0.8B) and the engine
-  (14.3M) are noise next to that. CPU and Apple silicon (MPS) work too, just slower.
-* **Time**: dominated by reading the texts through your reader, 6 probe prompts per text.
-  A 7B reader over 1,000 short texts is tens of minutes on a 24 GB GPU; the ridge and the
-  refine are minutes. `max_len=` caps prompt length if your texts are long and you want a
-  faster first fit.
-* **Labels, only for calibration.** The attached dir answers immediately but its
-  probabilities are raw until you calibrate on your own labelled examples, which beat any
-  data we could ship because they match your distribution:
-
-```python
-vegaml.calibrate("vega-u-mistral-7b", examples, questions)   # same shapes as Vega.fit
-```
-
-Roughly 500 labelled examples per question type is usable and 1,000 to 2,000 is where the
-numbers settle. The refit covers the temperature (physics-conditioned where it beats a plain
-one on a holdout), the conformal prediction-set thresholds, the abstain thresholds and the
-unbound threshold, written into the dir and applied in place. One honest caveat: a port
-fitted on your corpus is tuned to your domain, and the published benchmark numbers only
-describe the ports we ship.
 
 ## vega-U: one engine, any reader
 
