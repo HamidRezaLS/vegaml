@@ -64,9 +64,21 @@ self-supervised. The checkpoint's own root reader generates the shared-space tar
 text, so the port (what a port is: the vega-U section, next) is fitted from running both
 readers over the same prompts, on text you bring.
 
-The text file could not be simpler: plain UTF-8, **one document per line**, no labels, no
-headers, no JSON. A long document stays on its one line (replace any newlines inside it with
-spaces); blank lines are skipped. The shipped starter corpus looks like this:
+**The structure of the text file**, and yes, the content can be almost anything:
+
+| rule | what it means |
+| --- | --- |
+| one document per line | a line is one text: an email, a ticket, a review, a log, a contract, a chat transcript |
+| plain text only | UTF-8, no labels, no headers, no JSON, no markup needed; `attach` never reads answers here |
+| long documents stay on one line | replace newlines inside a document with spaces; blank lines are skipped |
+| any length | a sentence to tens of thousands of tokens; include genuinely long lines if you will read long records |
+| content: your domain | whatever your model will actually read in production; the languages your readers handle are fine |
+| diverse beats big | 1,000 varied lines beat 10,000 near-duplicates; do not repeat one template |
+
+"Can it be anything?" Almost: it needs no labels, no questions and no structure, because the
+alignment is self-supervised, the anchor reader generates the target for every line. The one
+thing that matters is that the lines look like your production traffic, since the port tunes
+to the corpus it is fitted on. The shipped starter corpus looks like this:
 
 ```text
 I was charged 320.00 twice for the booking system all week. Please refund the duplicate and confirm by email, or I will have to cancel the account.
