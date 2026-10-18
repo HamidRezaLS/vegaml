@@ -196,8 +196,6 @@ downstream are unchanged. A new reader is attached by the training-side tooling
 (closed-form port fit against stored shared-space targets, a short refine, a calibration
 refit), never by retraining the engine or fine-tuning the reader.
 
-![vega-U benchmarks](assets/vega_u_benchmarks.png)
-
 Measured across the October 2026 runs, every cold-attached reader scored above the readers
 the engine trained with, on an engine that is checksum-identical behind all four:
 
