@@ -6,6 +6,7 @@ surfaces around it.
 
 | Page | What it covers |
 | --- | --- |
+| [vega-U](vega-u.md) | The universal checkpoint: one engine, any reader, and its benchmarks |
 | [Questions](questions.md) | The three question types and how to write their criteria |
 | [CLI](cli.md) | `vegaml`: decisions from the shell, single or JSONL batches |
 | [HTTP API](http-api.md) | `vegaml-serve`: the decide() call over HTTP |

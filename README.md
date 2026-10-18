@@ -262,10 +262,25 @@ it ships.
 The package recognises the `port` key in `vega_config.json` and inserts the
 standardize-then-port step in front of the engine automatically; `decide()` and everything
 downstream are unchanged. A new reader is attached by the training-side tooling
-(`attach_backbone.py`: closed-form port fit against stored shared-space targets, a short
-refine, a calibration refit), never by retraining the engine or fine-tuning the reader. In
-the first universal run a Qwen3.5-4B attached that way, cold, scored 0.791 held-out accuracy
-against 0.765 for the 0.8B the engine trained with, at 0.017 calibration error.
+(closed-form port fit against stored shared-space targets, a short refine, a calibration
+refit), never by retraining the engine or fine-tuning the reader.
+
+![vega-U benchmarks](assets/vega_u_benchmarks.png)
+
+Measured across the October 2026 runs, every cold-attached reader scored above the readers
+the engine trained with, on an engine that is checksum-identical behind all four:
+
+| reader | how | held-out acc | zero-shot acc | ECE | AURC | acc @ 50% cov |
+|---|---|---|---|---|---|---|
+| Qwen3.8-27B | attached cold | **0.811** | **0.629** | 0.021 | **0.053** | **0.976** |
+| Qwen3.5-4B | attached cold | 0.791 | 0.568 | 0.017 | 0.063 | 0.965 |
+| Qwen3.5-0.8B | trained jointly | 0.765 | 0.534 | 0.010 | 0.073 | 0.956 |
+| gemma-3-1b-it | trained jointly | 0.738 | 0.504 | 0.007 | 0.093 | 0.927 |
+
+The gains land where reading matters (long context 0.831 to 0.941 from the 0.8B to the 27B,
+ARC 0.647 to 0.922) and saturated tasks stay flat, which is the design's claim made
+measurable. The full per-source board, the checkpoint layout, the caveats and the version
+history are in [docs/vega-u.md](docs/vega-u.md).
 
 ## Fine-tuning
 
