@@ -97,13 +97,13 @@ import vegaml
 texts = [t for t in open("examples/sample_attach_texts.txt") if t.strip()]
 
 report = vegaml.attach(
-    "mistralai/Mistral-7B-Instruct-v0.3",   # any instruction-tuned causal LM
+    "HuggingFaceTB/SmolLM2-1.7B-Instruct",   # any instruction-tuned causal LM
     texts=texts,
-    out_dir="vega-u-mistral-7b",
+    out_dir="vega-u-smollm2-1.7b",
 )
 print(report["ridge_cosines"])               # how faithfully the port landed
 
-v = vegaml.load("vega-u-mistral-7b")         # same engine, byte for byte, new eyes
+v = vegaml.load("vega-u-smollm2-1.7b")       # same engine, byte for byte, new eyes
 ```
 
 Three steps happen under that call:
@@ -144,13 +144,13 @@ import json
 #  !curl -sO https://raw.githubusercontent.com/NandhaKishorM/vegaml/main/examples/sample_calibrate.json)
 cal = json.load(open("examples/sample_calibrate.json"))
 
-vegaml.calibrate("vega-u-mistral-7b", cal["examples"], cal["questions"])
+vegaml.calibrate("vega-u-smollm2-1.7b", cal["examples"], cal["questions"])
 ```
 
 And then the attached, calibrated model answers exactly like the Quick start one:
 
 ```python
-v = vegaml.load("vega-u-mistral-7b")
+v = vegaml.load("vega-u-smollm2-1.7b")
 
 out = v.decide(
     "The dishwasher stopped working this morning and now shows error E-114. "

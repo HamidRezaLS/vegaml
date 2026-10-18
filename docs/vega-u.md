@@ -62,9 +62,9 @@ anchor) computes the shared-space target for any text, so `vegaml.attach` fits t
 from both readers reading the same prompts, on text you bring.
 
 ```python
-report = vegaml.attach("mistralai/Mistral-7B-Instruct-v0.3",
-                       texts=my_texts, out_dir="vega-u-mistral-7b")
-v = vegaml.load("vega-u-mistral-7b")
+report = vegaml.attach("HuggingFaceTB/SmolLM2-1.7B-Instruct",
+                       texts=my_texts, out_dir="vega-u-smollm2-1.7b")
+v = vegaml.load("vega-u-smollm2-1.7b")
 ```
 
 What runs: the anchor reads every text under six fixed probe questions (all three answer
