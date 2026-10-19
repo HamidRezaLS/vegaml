@@ -144,6 +144,13 @@ each run's raw per-source detail ships as `eval_report.json` in its reader direc
   `vega_config.json` is a symlink into the blob store; the refit now replaces the link with
   a real file instead of writing through it, so the content-addressed blob keeps its bytes
   and the refit persists for later `load()` calls on the same machine.
+- **0.12.3**: three contributed fixes. `mode="auto"` now switches to a fitted head only when
+  its cross-validated accuracy beats the engine's own accuracy on the same examples, not just
+  chance, so a thin head can no longer displace a strong calibrated engine (the head stays
+  available to a deliberate `mode="ttt"`). The package reads its own UTF-8 files as UTF-8
+  rather than the locale encoding, fixing startup on non-UTF-8 Windows locales. And a second
+  `attach` into the same `out_dir` no longer dies on the read-only engine copy the first run
+  inherited from the HF cache.
 - **0.12.2**: an attached dir loads by its reader's full repository id. `attach` stores the
   id it was given ("HuggingFaceTB/SmolLM2-1.7B-Instruct") in the config's `backbone` key, and
   the loader now uses it when it is shaped like a repository id; before, it fell through to
