@@ -130,7 +130,7 @@ QUERY_FIRST = "Question to keep in mind while reading ({t}): {ins}\n\n"
 
 def build_prompt(tok, state_text: str, q: Dict, max_len: int, option_order: Optional[List[int]] = None,
                  truncate_left: bool = False, template: int = 0, opt_max_tokens: int = 32, ins_max_tokens: int = 256,
-                 query_first_max_state: int = 0):
+                 query_first_max_state: int = 0, state_ids: Optional[List[int]] = None):
     """Tokenize one decision prompt for the frozen perception model and record where each part sits.
 
     Returns (ids, spans) with spans = {"state": (a, b), "question": (a, b), "options": [(a, b), ...]} in token positions
@@ -158,7 +158,12 @@ def build_prompt(tok, state_text: str, q: Dict, max_len: int, option_order: Opti
         oids = [o[:per] for o in oids]
         qids = qids[:max(8, max_len - 16 - len(bos) - len(head) - len(end) - sum(len(o) for o in oids))]
         fixed = len(bos) + len(head) + len(qids) + sum(len(o) for o in oids) + len(end)
-    st = enc(state_text)
+    if state_ids is not None:
+        st = state_ids
+    elif isinstance(state_text, (list, tuple)):
+        st = list(state_text)
+    else:
+        st = enc(state_text)
     pre = []
     if query_first_max_state and len(st) < query_first_max_state:
         pre = enc(QUERY_FIRST.format(t=q["t"], ins=str(q["ins"])))[:min(128, ins_max_tokens)]
