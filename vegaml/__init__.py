@@ -42,7 +42,7 @@ from .ttt import TTTHead
 # so they belong in __all__ rather than merely being present as module attributes.
 __all__ = ["load", "Vega", "TTTHead", "fetch", "default_token", "label_ids", "MODES",
            "attach", "calibrate", "__version__"]
-__version__ = "0.12.3"
+__version__ = "0.12.4"
 
 MODES = ("auto", "engine", "ttt", "both")
 
@@ -424,3 +424,20 @@ def load(repo_or_path: Optional[str] = None, **kw) -> Vega:
     Hub repository id or a local path. See :meth:`Vega.from_pretrained` for the other arguments.
     """
     return Vega.from_pretrained(repo_or_path, **kw)
+
+
+# vegaml/calibrate.py (the legacy calibration module) shares its name with the calibrate()
+# function above, and the FIRST import of a submodule binds it onto the package, clobbering
+# whatever held the name. evals imports it, and fit imports evals, so one fit() call used to
+# turn vegaml.calibrate into a module. Spend that one binding here, at import time (it has
+# to happen after label_ids exists, which the submodule imports), and take the name back:
+# every later "from .calibrate import ..." resolves through sys.modules and never touches
+# the package attribute again.
+# "from . import calibrate" would NOT do it: that form prefers the package attribute,
+# which is already the function, and never loads the file. import_module always loads.
+import importlib as _importlib  # noqa: E402
+
+_calibrate_fn = calibrate
+_importlib.import_module(".calibrate", __name__)       # binds the module onto the package
+calibrate = _calibrate_fn                              # and the function takes the name back
+del _calibrate_fn, _importlib

@@ -144,6 +144,12 @@ each run's raw per-source detail ships as `eval_report.json` in its reader direc
   `vega_config.json` is a symlink into the blob store; the refit now replaces the link with
   a real file instead of writing through it, so the content-addressed blob keeps its bytes
   and the refit persists for later `load()` calls on the same machine.
+- **0.12.4**: `vegaml.calibrate` stays a function. The package also ships a legacy
+  `vegaml/calibrate.py` module, and the first import of a submodule binds it onto the
+  package over whatever held the name; 0.12.3's fit started importing `evals`, which imports
+  that module, so one `fit()` call turned `vegaml.calibrate` into a module and the next
+  calibrate call died with "'module' object is not callable". The package now spends that
+  one binding at import time and gives the name back to the function.
 - **0.12.3**: three contributed fixes. `mode="auto"` now switches to a fitted head only when
   its cross-validated accuracy beats the engine's own accuracy on the same examples, not just
   chance, so a thin head can no longer displace a strong calibrated engine (the head stays

@@ -190,3 +190,18 @@ def test_attach_engine_copy_survives_a_readonly_previous_run(tmp_path):
     _copy_fresh(str(src), str(dst))                   # the second attach: used to PermissionError
     assert dst.read_bytes() == b"engine-bytes"
     assert not dst.stat().st_mode & 0o077              # healed copy: nothing for group or world
+
+
+def test_the_calibrate_function_survives_an_evals_import():
+    # vegaml/calibrate.py shares its name with the public calibrate() function, and the first
+    # import of a submodule binds it onto the package. evals imports it (and fit imports
+    # evals), so one fit() call used to turn vegaml.calibrate into a module. The package now
+    # spends that binding at import time, so the function must keep the name afterwards.
+    import importlib
+
+    import vegaml
+
+    importlib.import_module("vegaml.evals")
+    importlib.import_module("vegaml.calibrate")
+    assert callable(vegaml.calibrate)
+    assert vegaml.calibrate.__doc__ and "refit" in vegaml.calibrate.__doc__.lower()
