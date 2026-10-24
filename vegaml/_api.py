@@ -186,14 +186,17 @@ class Vega:
         ins = qdef["instructions"] if isinstance(qdef["instructions"], str) else json.dumps(qdef["instructions"])
         return {"t": t, "ins": ins, "crit": crit}
 
-    def _view(self, text, qs, template, orders):
+    def _view(self, text, qs, template, orders, state_ids=None):
         """One reading of the state under one surface form. Returns calibrated probabilities per question in ORIGINAL
         option order, plus the engine output / route / raw logits (in prompt order) for the physics fields."""
+        if state_ids is None:
+            state_ids = self.perc.tok(text, add_special_tokens=False)["input_ids"]
         items = []
         for q, order in zip(qs, orders):
             ids, spans = build_prompt(self.perc.tok, text, q, self.cfg["max_len"], template=template, option_order=order,
                                       opt_max_tokens=self.cfg["opt_max_tokens"],
-                                      query_first_max_state=self.cfg.get("query_first_max_state", 0))
+                                      query_first_max_state=self.cfg.get("query_first_max_state", 0),
+                                      state_ids=state_ids)
             items.append({"ids": np.asarray(ids, dtype=np.int32), "spans": spans})
         C = self.engine.memory_chunks if self.engine.memory is not None else 0
         pm = self.cfg.get("prefix_min_tokens", 4096)
@@ -244,12 +247,15 @@ class Vega:
         n_opt = [len(option_texts(q)) for q in qs]
         ident = [list(range(k)) for k in n_opt]
         text = serialize_state(state)
-        runs = [self._view(text, qs, 0, ident)]
+        st_ids = self.perc.tok(text, add_special_tokens=False)["input_ids"]
+        runs = [self._view(text, qs, 0, ident, state_ids=st_ids)]
         if views >= 2:
             rev = [o[::-1] if q["t"] != "score" else o for q, o in zip(qs, ident)]
-            runs.append(self._view(text, qs, 0, rev))
+            runs.append(self._view(text, qs, 0, rev, state_ids=st_ids))
         if views >= 3:
-            runs.append(self._view(prose_state(state) if not isinstance(state, str) else text, qs, 1, ident))
+            p_text = prose_state(state) if not isinstance(state, str) else text
+            p_ids = st_ids if p_text == text else None
+            runs.append(self._view(p_text, qs, 1, ident, state_ids=p_ids))
         base = runs[0]
         out, route, gates, logits, mask = base["out"], base["route"], base["gates"], base["logits"], base["mask"]
         risk = str(risk) if risk is not None else self.risk
